@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import { Plus, ImageOff } from "lucide-react-native";
-import { useProjects } from "./context/ProjectsContext";
+import { useProjects } from "../hooks/ProjectsContext";
 import { db } from "../db";
 import { projects } from "../db/schema";
 
@@ -119,7 +119,6 @@ export default function Index() {
       </View>
       {projectList.length > 0 ? (
         <> 
-      <Text className="text-zinc-900 font-semibold text-base mb-2">Project List {projectList.length}</Text>
       <FlatList
         data={projectList}
         keyExtractor={(item) => String(item.id)}

@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ProjectsProvider } from "./context/ProjectsContext";
+import { ProjectsProvider } from "../hooks/ProjectsContext";
 
 export default function RootLayout() {
   return (

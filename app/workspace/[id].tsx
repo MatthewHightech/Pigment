@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useProjects } from "../context/ProjectsContext";
+import { useProjects } from "../../hooks/ProjectsContext";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -62,12 +62,12 @@ export default function WorkspaceScreen() {
     }
 
     return (
-        <View className="flex-1">
-          <View className="flex-row items-center justify-between px-4 py-2 border-b border-zinc-800">
+        <View className="flex-1" style={{ paddingTop: insets.top }}>
+          <View className="flex-row items-center justify-between px-4 py-2">
             <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-              <ChevronLeft size={24} color="#fafafa" />
+              <ChevronLeft size={24} color="#000000" />
             </TouchableOpacity>
-            <Text className="text-zinc-100 font-semibold text-base flex-1" numberOfLines={1}>
+            <Text className="text-zinc-950 font-semibold text-base flex-1" numberOfLines={1}>
               {project.name}
             </Text>
             <View style={{ width: 40 }} />

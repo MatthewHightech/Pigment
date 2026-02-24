@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useLiveQuery } from "drizzle-orm/expo-sqlite/query";
-import { db } from "../../db";
-import { projects } from "../../db/schema";
+import { db } from "../db";
+import { projects } from "../db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 export type Project = InferSelectModel<typeof projects>;
