@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import { Plus, ImageOff } from "lucide-react-native";
-import { useLiveQuery } from "drizzle-orm/expo-sqlite/query";
+import { useProjects } from "./context/ProjectsContext";
 import { db } from "../db";
 import { projects } from "../db/schema";
 
@@ -20,7 +20,7 @@ const CELL_SIZE = (Dimensions.get("window").width - PAD * 2 - GAP) / COLS;
 
 export default function Index() {
   const router = useRouter();
-  const { data: projectList = [] } = useLiveQuery(db.select().from(projects));
+  const { projects: projectList, isLoading, error } = useProjects();
 
   const pickImage = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -89,6 +89,22 @@ export default function Index() {
     },
     [openProject]
   );
+
+  if (error) {
+    return (
+      <View className="flex-1 bg-cream-50 items-center justify-center p-6">
+        <Text className="text-red-600 text-center">Failed to load projects: {error.message}</Text>
+      </View>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-cream-50 items-center justify-center p-6">
+        <Text className="text-zinc-500">Loading projects…</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-cream-50 pt-16 px-4 pb-6">
