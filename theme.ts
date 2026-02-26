@@ -6,8 +6,8 @@
 export const theme = {
   colors: {
     backdrop: "rgba(0,0,0,0.45)",
-    background: "#f8f6f3",
-    surface: "#fdfcfa",
+    background: "#f5f2eb",
+    surface: "#faf8f3",
     surfaceElevated: "#ffffff",
     surfaceOverlay: "#1c1917",
     surfaceOverlayMuted: "#292524",
@@ -22,7 +22,7 @@ export const theme = {
     primaryForeground: "#ffffff",
     destructive: "#ff383c",
     destructiveForeground: "#ffffff",
-    muted: "#f5f3f0",
+    muted: "#f0ebe3",
     mutedForeground: "#78716c",
   },
   radius: {

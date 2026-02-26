@@ -9,15 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.Pigment"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#f8f6f3",
+        "backgroundColor": "#f5f2eb",
         "foregroundImage": "./assets/images/icon.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.Pigment"
     },
     "web": {
       "output": "static",

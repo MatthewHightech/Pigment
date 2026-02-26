@@ -9,6 +9,7 @@ import { useProjects } from "../hooks/ProjectsContext";
 import { db } from "../db";
 import { projects } from "../db/schema";
 import { AddProjectModal } from "../components/AddProjectModal";
+import { theme } from "../theme";
 
 import "../global.css";
 
@@ -128,7 +129,22 @@ export default function Index() {
   return (
     <View className="flex-1 bg-background pt-16 px-4 pb-6">
       <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-2xl font-semibold text-text-primary">Pigment</Text>
+        <View className="flex-row items-center flex-1 gap-3">
+          <Image
+            source={require("../assets/images/icon.png")}
+            style={{ width: 56, height: 56 }}
+            contentFit="contain"
+          />
+          <Text
+            style={{
+              fontFamily: "PlayfairDisplay_600SemiBold",
+              fontSize: 30,
+              color: theme.colors.primary,
+            }}
+          >
+            Paint Mixer
+          </Text>
+        </View>
         <TouchableOpacity
           onPress={openAddModal}
           className="rounded-xl w-11 h-11 bg-primary items-center justify-center active:opacity-90"

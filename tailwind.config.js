@@ -6,8 +6,8 @@ module.exports = {
     extend: {
       colors: {
         backdrop: "rgba(0,0,0,0.45)",
-        background: "#f8f6f3",
-        surface: "#fdfcfa",
+        background: "#f5f2eb",
+        surface: "#faf8f3",
         "surface-elevated": "#ffffff",
         "surface-overlay": "#1c1917",
         "surface-overlay-muted": "#292524",
@@ -22,7 +22,7 @@ module.exports = {
         "primary-foreground": "#ffffff",
         destructive: "#b91c1c",
         "destructive-foreground": "#ffffff",
-        muted: "#f5f3f0",
+        muted: "#f0ebe3",
         "muted-foreground": "#78716c",
       },
       borderRadius: {
