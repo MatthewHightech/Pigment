@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, FlatList, Alert, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Alert, Dimensions, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback } from "react";
@@ -6,6 +6,7 @@ import * as ImagePicker from "expo-image-picker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as Haptics from "expo-haptics";
 import { Plus, ImageOff } from "lucide-react-native";
+import { eq } from "drizzle-orm";
 import { useProjects } from "../hooks/ProjectsContext";
 import { db } from "../db";
 import { projects } from "../db/schema";
@@ -67,13 +68,41 @@ export default function Index() {
     [router]
   ) as (id: number) => void;
 
+  const confirmDeleteProject = useCallback((item: (typeof projectList)[number]) => {
+    Alert.alert(
+      "Delete project",
+      `Remove "${item.name}" and its palette? This can't be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await db.delete(projects).where(eq(projects.id, item.id));
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (e) {
+              Alert.alert(
+                "Couldn't delete",
+                e instanceof Error ? e.message : "Something went wrong."
+              );
+            }
+          },
+        },
+      ]
+    );
+  }, []);
+
   const renderItem = useCallback(
     ({ item }: { item: (typeof projectList)[number] }) => {
       const isMissing = item.imageUri === PLACEHOLDER_URI || !item.imageUri;
       return (
-        <TouchableOpacity
+        <Pressable
           onPress={() => openProject(item.id)}
-          activeOpacity={0.8}
+          onLongPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            confirmDeleteProject(item);
+          }}
           style={{ width: CELL_SIZE, height: CELL_SIZE + 36 }}
           className="rounded-squircle overflow-hidden bg-zinc-800 border border-zinc-700/50"
         >
@@ -98,10 +127,10 @@ export default function Index() {
               {item.name}
             </Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
-    [openProject]
+    [openProject, confirmDeleteProject]
   );
 
   if (error) {
