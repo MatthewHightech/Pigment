@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as Haptics from "expo-haptics";
 import { Plus, ImageOff } from "lucide-react-native";
 import { useProjects } from "../hooks/ProjectsContext";
@@ -35,12 +36,25 @@ export default function Index() {
     });
     if (result.canceled) return;
     const uri = result.assets[0].uri;
-    const name = uri.split("/").pop() || "Project";
+    const name = uri.split("/").pop()?.replace(/\.[^/.]+$/, "") || "Project";
+
+    // Convert to JPEG so HEIC and other formats work for display and color sampling
+    let imageUri = uri;
+    try {
+      const { uri: jpegUri } = await manipulateAsync(uri, [], {
+        format: SaveFormat.JPEG,
+        compress: 0.9,
+      });
+      imageUri = jpegUri;
+    } catch {
+      // Keep original URI if conversion fails (e.g. already JPEG)
+    }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const createdAt = new Date();
     await db.insert(projects).values({
       name: name.slice(0, 50),
-      imageUri: uri,
+      imageUri,
       createdAt,
     });
   }, []);
