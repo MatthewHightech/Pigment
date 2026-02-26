@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hexToRybMix } from "../lib/colorMixing";
 import { MixDonutChart } from "./MixDonutChart";
+import { Trash2 } from "lucide-react-native";
 import { theme } from "../theme";
 
 export interface PaintMixBottomSheetProps {
@@ -19,6 +20,9 @@ export interface PaintMixBottomSheetProps {
   onClose: () => void;
   /** Palette color hex (e.g. #2d5016) */
   hex: string;
+  /** If provided, show a button to remove this color from the palette */
+  colorId?: number | null;
+  onDelete?: (colorId: number) => Promise<void>;
 }
 
 const ANIM_DURATION_OPEN = 280;
@@ -28,14 +32,28 @@ export function PaintMixBottomSheet({
   visible,
   onClose,
   hex,
+  colorId,
+  onDelete,
 }: PaintMixBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(windowHeight)).current;
   const isClosingRef = useRef(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const mix = React.useMemo(() => hexToRybMix(hex), [hex]);
+
+  const handleDelete = React.useCallback(async () => {
+    if (colorId == null || !onDelete || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(colorId);
+      onClose();
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [colorId, onDelete, isDeleting]);
 
   useEffect(() => {
     if (!visible) return;
@@ -164,27 +182,59 @@ export function PaintMixBottomSheet({
             </Text>
           )}
         </View>
-        <TouchableOpacity
-          onPress={handleClose}
-          style={[
-            styles.closeButton,
-            {
-              marginTop: theme.spacing.lg,
-              paddingVertical: theme.spacing.md,
-              borderRadius: theme.radius.sm,
-              backgroundColor: theme.colors.muted,
-            },
-          ]}
-          activeOpacity={0.8}
-          accessibilityLabel="Close"
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: theme.spacing.md,
+            gap: theme.spacing.md,
+          }}
         >
-          <Text
-            className="font-medium"
-            style={{ color: theme.colors.text }}
+          <TouchableOpacity
+            onPress={handleClose}
+            style={[
+              styles.closeButton,
+              {
+                flex: 1,
+                paddingVertical: theme.spacing.md,
+                borderRadius: theme.radius.sm,
+                backgroundColor: theme.colors.muted,
+              },
+            ]}
+            activeOpacity={0.8}
+            accessibilityLabel="Close"
           >
-            Done
-          </Text>
-        </TouchableOpacity>
+            <Text
+              className="font-medium"
+              style={{ color: theme.colors.text }}
+            >
+              Done
+            </Text>
+          </TouchableOpacity>
+          {colorId != null && onDelete != null && (
+            <TouchableOpacity
+              onPress={handleDelete}
+              disabled={isDeleting}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: theme.radius.sm,
+                borderWidth: 1,
+                borderColor: theme.colors.destructive,
+                backgroundColor: "transparent",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              activeOpacity={0.7}
+              accessibilityLabel="Remove from palette"
+            >
+              <Trash2
+                size={20}
+                color={theme.colors.destructive}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -220,5 +270,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     alignItems: "center",
+    justifyContent: "center",
   },
 });

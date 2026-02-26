@@ -20,7 +20,7 @@ export const theme = {
     borderStrong: "#d6d3d1",
     primary: "#b45309",
     primaryForeground: "#ffffff",
-    destructive: "#b91c1c",
+    destructive: "#ff383c",
     destructiveForeground: "#ffffff",
     muted: "#f5f3f0",
     mutedForeground: "#78716c",

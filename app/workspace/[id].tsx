@@ -30,12 +30,12 @@ export default function WorkspaceScreen() {
   const [layout, setLayout] = useState({ width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
   const [pickerOpen, setPickerOpen] = useState(false);
   const [initialPickerPixel, setInitialPickerPixel] = useState({ x: 0, y: 0 });
-  const [mixSheetColor, setMixSheetColor] = useState<string | null>(null);
+  const [mixSheetColor, setMixSheetColor] = useState<{ id: number; hexValue: string } | null>(null);
 
   const projectIdNum = Number(id);
   const { projects: projectList, isLoading, error } = useProjects();
   const project = projectList.find((p) => p.id === projectIdNum);
-  const { colors: paletteColors, addColor } = useProjectColors(project?.id);
+  const { colors: paletteColors, addColor, deleteColor } = useProjectColors(project?.id);
 
   const imageUri = project?.imageUri;
   const isMissingImage = !imageUri || imageUri === "missing";
@@ -123,28 +123,35 @@ export default function WorkspaceScreen() {
 
       <View className="px-4 py-3 border-b border-border">
         <Text className="text-text-secondary text-xs font-medium mb-2">Palette</Text>
-        {paletteColors.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10 }}
-          >
-            {paletteColors.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setMixSheetColor(c.hexValue);
-                }}
-                className="w-9 h-9 rounded-full border-2 border-border-strong active:opacity-90"
-                style={{ backgroundColor: c.hexValue }}
-              />
-            ))}
-          </ScrollView>
-        )}
-        {paletteColors.length === 0 && (
-          <Text className="text-text-tertiary text-sm">Tap and hold on the image to add colors</Text>
-        )}
+        <View style={{ height: 52 }}>
+          {paletteColors.length > 0 ? (
+            <>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 10 }}
+                style={{ height: 36 }}
+              >
+                {paletteColors.map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setMixSheetColor({ id: c.id, hexValue: c.hexValue });
+                    }}
+                    className="w-9 h-9 rounded-full border-2 border-border-strong active:opacity-90"
+                    style={{ backgroundColor: c.hexValue }}
+                  />
+                ))}
+              </ScrollView>
+              <Text className="text-text-tertiary text-xs mt-1.5">
+                Tap a color to see how to mix it
+              </Text>
+            </>
+          ) : (
+            <Text className="text-text-tertiary text-sm">Tap and hold on the image to add colors</Text>
+          )}
+        </View>
       </View>
 
       <View className="flex-1" onLayout={(e) => setLayout(e.nativeEvent.layout)}>
@@ -184,7 +191,9 @@ export default function WorkspaceScreen() {
       {mixSheetColor !== null && (
         <PaintMixBottomSheet
           visible
-          hex={mixSheetColor}
+          hex={mixSheetColor.hexValue}
+          colorId={mixSheetColor.id}
+          onDelete={deleteColor}
           onClose={() => setMixSheetColor(null)}
         />
       )}

@@ -42,9 +42,14 @@ export function useProjectColors(projectId: number | undefined) {
     [projectId]
   );
 
+  const deleteColor = useCallback(async (colorId: number) => {
+    await db.delete(colors).where(eq(colors.id, colorId));
+  }, []);
+
   return {
     colors: list as ProjectColor[],
     addColor,
+    deleteColor,
     isLoading: data === undefined,
     error: error ?? null,
   };
