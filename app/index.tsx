@@ -1,15 +1,14 @@
 import { View, Text, TouchableOpacity, FlatList, Alert, Dimensions, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useCallback } from "react";
-import * as ImagePicker from "expo-image-picker";
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import { useCallback, useState } from "react";
 import * as Haptics from "expo-haptics";
 import { Plus, ImageOff } from "lucide-react-native";
 import { eq } from "drizzle-orm";
 import { useProjects } from "../hooks/ProjectsContext";
 import { db } from "../db";
 import { projects } from "../db/schema";
+import { AddProjectModal } from "../components/AddProjectModal";
 
 import "../global.css";
 
@@ -23,40 +22,17 @@ const CELL_SIZE = (Dimensions.get("window").width - PAD * 2 - GAP) / COLS;
 export default function Index() {
   const router = useRouter();
   const { projects: projectList, isLoading, error } = useProjects();
+  const [addModalVisible, setAddModalVisible] = useState(false);
 
-  const pickImage = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission needed", "Allow access to photos to add a project.");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: false,
-      quality: 1,
-    });
-    if (result.canceled) return;
-    const uri = result.assets[0].uri;
-    const name = uri.split("/").pop()?.replace(/\.[^/.]+$/, "") || "Project";
+  const openAddModal = useCallback(() => {
+    setAddModalVisible(true);
+  }, []);
 
-    // Convert to JPEG so HEIC and other formats work for display and color sampling
-    let imageUri = uri;
-    try {
-      const { uri: jpegUri } = await manipulateAsync(uri, [], {
-        format: SaveFormat.JPEG,
-        compress: 0.9,
-      });
-      imageUri = jpegUri;
-    } catch {
-      // Keep original URI if conversion fails (e.g. already JPEG)
-    }
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const createdAt = new Date();
+  const handleCreateProject = useCallback(async (name: string, imageUri: string) => {
     await db.insert(projects).values({
-      name: name.slice(0, 50),
+      name,
       imageUri,
-      createdAt,
+      createdAt: new Date(),
     });
   }, []);
 
@@ -154,12 +130,19 @@ export default function Index() {
       <View className="flex-row items-center justify-between mb-6">
         <Text className="text-2xl font-semibold text-zinc-950">Pigment</Text>
         <TouchableOpacity
-          onPress={pickImage}
+          onPress={openAddModal}
           className="rounded-squircle-sm w-10 h-10 bg-zinc-800 border border-zinc-700 items-center justify-center"
         >
           <Plus size={22} color="#fafafa" />
         </TouchableOpacity>
       </View>
+
+      <AddProjectModal
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onCreate={handleCreateProject}
+      />
+
       {projectList.length > 0 ? (
         <> 
       <FlatList
