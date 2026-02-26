@@ -44,6 +44,13 @@ export default function WorkspaceScreen() {
     imageSize.width,
     imageSize.height
   );
+  // Image is top-aligned; content rect for touch mapping has y = 0
+  const imageContentRect = {
+    x: containRect.x,
+    y: 0,
+    width: containRect.width,
+    height: containRect.height,
+  };
 
   useEffect(() => {
     if (!imageUri || isMissingImage) return;
@@ -58,7 +65,7 @@ export default function WorkspaceScreen() {
     const point = viewToImagePixel(
       e.nativeEvent.locationX,
       e.nativeEvent.locationY,
-      containRect,
+      imageContentRect,
       imageSize.width,
       imageSize.height
     );
@@ -112,9 +119,10 @@ export default function WorkspaceScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {paletteColors.length > 0 && (
+      
         <View className="px-4 py-2 border-b border-zinc-200">
           <Text className="text-zinc-600 text-xs font-medium mb-2">Palette</Text>
+          {paletteColors.length > 0 && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -134,8 +142,11 @@ export default function WorkspaceScreen() {
               />
             ))}
           </ScrollView>
+          )}
+          {paletteColors.length === 0 && (
+            <Text className="text-zinc-500 text-sm">Tap and hold to add colors</Text>
+          )}
         </View>
-      )}
 
       <View className="flex-1" onLayout={(e) => setLayout(e.nativeEvent.layout)}>
         {isMissingImage ? (
@@ -144,13 +155,16 @@ export default function WorkspaceScreen() {
           </View>
         ) : (
           <Pressable
-            style={{ flex: 1 }}
+            style={{ flex: 1, justifyContent: "flex-start", alignItems: "center" }}
             onLongPress={handleLongPress}
             delayLongPress={400}
           >
             <Image
               source={{ uri: imageUri }}
-              style={{ width: SCREEN_WIDTH, flex: 1 }}
+              style={{
+                width: containRect.width,
+                height: containRect.height,
+              }}
               resizeMode="contain"
             />
           </Pressable>
