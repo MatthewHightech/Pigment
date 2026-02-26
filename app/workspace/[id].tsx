@@ -17,6 +17,7 @@ import * as Haptics from "expo-haptics";
 import { useProjects } from "../../hooks/ProjectsContext";
 import { useProjectColors } from "../../hooks/useProjectColors";
 import { ColorPickerOverlay } from "../../components/ColorPickerOverlay";
+import { PaintMixBottomSheet } from "../../components/PaintMixBottomSheet";
 import { getContainRect, viewToImagePixel } from "../../lib/imageLayout";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -29,6 +30,7 @@ export default function WorkspaceScreen() {
   const [layout, setLayout] = useState({ width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
   const [pickerOpen, setPickerOpen] = useState(false);
   const [initialPickerPixel, setInitialPickerPixel] = useState({ x: 0, y: 0 });
+  const [mixSheetColor, setMixSheetColor] = useState<string | null>(null);
 
   const projectIdNum = Number(id);
   const { projects: projectList, isLoading, error } = useProjects();
@@ -129,8 +131,12 @@ export default function WorkspaceScreen() {
             contentContainerStyle={{ gap: 10 }}
           >
             {paletteColors.map((c) => (
-              <View
+              <TouchableOpacity
                 key={c.id}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setMixSheetColor(c.hexValue);
+                }}
                 style={{
                   width: 32,
                   height: 32,
@@ -180,6 +186,13 @@ export default function WorkspaceScreen() {
           initialPixel={initialPickerPixel}
           onConfirm={handleConfirmColor}
           onCancel={() => setPickerOpen(false)}
+        />
+      )}
+      {mixSheetColor !== null && (
+        <PaintMixBottomSheet
+          visible
+          hex={mixSheetColor}
+          onClose={() => setMixSheetColor(null)}
         />
       )}
     </View>
