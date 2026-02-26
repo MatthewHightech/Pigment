@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 import type { RybMix } from "../lib/colorMixing";
 import { getRybSegments } from "../lib/colorMixing";
+import { theme } from "../theme";
 
 const SIZE = 140;
 const STROKE_WIDTH = 24;
@@ -55,7 +56,9 @@ export function MixDonutChart({ mix }: MixDonutChartProps) {
   if (segments.length === 0) {
     return (
       <View style={[styles.container, styles.placeholder]}>
-        <Text className="text-zinc-500 text-sm">No mix data</Text>
+        <Text style={{ color: theme.colors.textTertiary, fontSize: 14 }}>
+          No mix data
+        </Text>
       </View>
     );
   }
@@ -63,7 +66,7 @@ export function MixDonutChart({ mix }: MixDonutChartProps) {
   return (
     <View style={styles.container}>
       <Canvas style={styles.canvas}>
-        {segments.map((seg, i) => (
+        {segments.map((seg) => (
           <Path
             key={seg.key}
             path={buildSegmentPath(seg.startAngle, seg.sweepAngle)}
@@ -71,11 +74,30 @@ export function MixDonutChart({ mix }: MixDonutChartProps) {
           />
         ))}
       </Canvas>
-      <View style={styles.legend}>
+      <View
+        style={[
+          styles.legend,
+          { marginTop: theme.spacing.md, gap: theme.spacing.md },
+        ]}
+      >
         {segments.map((seg) => (
           <View key={seg.key} style={styles.legendRow}>
-            <View style={[styles.swatch, { backgroundColor: seg.hex }]} />
-            <Text className="text-zinc-700 text-sm">
+            <View
+              style={[
+                styles.swatch,
+                {
+                  backgroundColor: seg.hex,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            />
+            <Text
+              style={{
+                color: theme.colors.textSecondary,
+                fontSize: 14,
+                marginLeft: 6,
+              }}
+            >
               {seg.label} {Math.round(seg.percent)}%
             </Text>
           </View>
@@ -98,22 +120,18 @@ const styles = StyleSheet.create({
     height: SIZE,
   },
   legend: {
-    marginTop: 12,
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 12,
   },
   legendRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
   },
   swatch: {
     width: 14,
     height: 14,
     borderRadius: 7,
     borderWidth: 1,
-    borderColor: "#d4d4d8",
   },
 });

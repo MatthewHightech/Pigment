@@ -11,11 +11,11 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { samplePixelColor } from "../lib/colorSampler";
+import { theme } from "../theme";
 
 const LOUPE_SIZE = 160;
 const LOUPE_ZOOM = 1;
 const CROSSHAIR_R = 12;
-const BORDER_WIDTH = 2;
 
 export interface ColorPickerOverlayProps {
   visible: boolean;
@@ -133,10 +133,20 @@ export function ColorPickerOverlay({
       animationType="fade"
       onRequestClose={onCancel}
     >
-      <View style={styles.backdrop}>
-        <View style={styles.content} {...panResponder.panHandlers}>
+      <View style={[styles.backdrop, { backgroundColor: theme.colors.backdrop }]}>
+        <View
+          style={[
+            styles.content,
+            {
+              backgroundColor: theme.colors.surfaceElevated,
+              borderRadius: theme.radius.lg,
+              padding: theme.spacing.xl,
+            },
+          ]}
+          {...panResponder.panHandlers}
+        >
           <View style={styles.loupeContainer}>
-            <View style={styles.loupe}>
+            <View style={[styles.loupe, { backgroundColor: theme.colors.muted }]}>
               <Image
                 source={{ uri: imageUri }}
                 style={[
@@ -151,24 +161,61 @@ export function ColorPickerOverlay({
                 resizeMode="stretch"
               />
             </View>
-            <View style={styles.crosshair} pointerEvents="none" />
+            <View
+              style={[styles.crosshair, { borderColor: "rgba(255,255,255,0.9)" }]}
+              pointerEvents="none"
+            />
           </View>
-          <Text style={styles.hint}>Drag to move • Tap Add to pick color</Text>
+          <Text
+            style={[
+              styles.hint,
+              {
+                color: theme.colors.textSecondary,
+                marginBottom: theme.spacing.lg,
+              },
+            ]}
+          >
+            Drag to move • Tap Add to pick color
+          </Text>
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
+              style={[
+                styles.button,
+                {
+                  backgroundColor: theme.colors.muted,
+                  borderRadius: theme.radius.sm,
+                },
+              ]}
               onPress={onCancel}
               activeOpacity={0.8}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: theme.colors.text, fontWeight: "500" },
+                ]}
+              >
+                Cancel
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, styles.addButton]}
+              style={[
+                styles.button,
+                {
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: theme.radius.sm,
+                },
+              ]}
               onPress={handleAdd}
               disabled={isSampling}
               activeOpacity={0.8}
             >
-              <Text style={styles.addButtonText}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: theme.colors.primaryForeground, fontWeight: "600" },
+                ]}
+              >
                 {isSampling ? "…" : "Add to palette"}
               </Text>
             </TouchableOpacity>
@@ -182,34 +229,29 @@ export function ColorPickerOverlay({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
   content: {
-    backgroundColor: "#1c1917",
-    borderRadius: 16,
-    padding: 20,
     alignItems: "center",
     maxWidth: 320,
   },
   loupeContainer: {
     marginBottom: 12,
-    borderRadius: LOUPE_SIZE / 2 + 4,
-    borderWidth: BORDER_WIDTH,
-    borderColor: "#57534e",
+    borderRadius: LOUPE_SIZE / 2,
+    borderWidth: 1,
+    borderColor: "#d6d3d1",
     position: "relative",
-    width: LOUPE_SIZE + BORDER_WIDTH * 2,
-    height: LOUPE_SIZE + BORDER_WIDTH * 2,
+    width: LOUPE_SIZE,
+    height: LOUPE_SIZE,
   },
   loupe: {
     position: "absolute",
-    left: BORDER_WIDTH,
-    top: BORDER_WIDTH,
+    left: 0,
+    top: 0,
     width: LOUPE_SIZE,
     height: LOUPE_SIZE,
-    backgroundColor: "#292524",
     overflow: "hidden",
     borderRadius: LOUPE_SIZE / 2,
   },
@@ -218,18 +260,15 @@ const styles = StyleSheet.create({
   },
   crosshair: {
     position: "absolute",
-    left: BORDER_WIDTH + LOUPE_SIZE / 2 - CROSSHAIR_R,
-    top: BORDER_WIDTH + LOUPE_SIZE / 2 - CROSSHAIR_R,
+    left: LOUPE_SIZE / 2 - CROSSHAIR_R,
+    top: LOUPE_SIZE / 2 - CROSSHAIR_R,
     width: CROSSHAIR_R * 2,
     height: CROSSHAIR_R * 2,
     borderRadius: CROSSHAIR_R,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.9)",
   },
   hint: {
-    color: "#a8a29e",
     fontSize: 13,
-    marginBottom: 16,
   },
   actions: {
     flexDirection: "row",
@@ -238,24 +277,10 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 10,
     minWidth: 120,
     alignItems: "center",
   },
-  cancelButton: {
-    backgroundColor: "#44403c",
-  },
-  cancelButtonText: {
-    color: "#e7e5e4",
+  buttonText: {
     fontSize: 16,
-    fontWeight: "500",
-  },
-  addButton: {
-    backgroundColor: "#3b82f6",
-  },
-  addButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

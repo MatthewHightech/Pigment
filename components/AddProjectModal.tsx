@@ -5,7 +5,6 @@ import {
   Modal,
   TouchableOpacity,
   TextInput,
-  StyleSheet,
   Keyboard,
   TouchableWithoutFeedback,
   Pressable,
@@ -16,6 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as Haptics from "expo-haptics";
 import { ImageOff } from "lucide-react-native";
+import { theme } from "../theme";
 
 export interface AddProjectModalProps {
   visible: boolean;
@@ -87,59 +87,99 @@ export function AddProjectModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.modalBackdrop} onPress={dismissKeyboard}>
+      <Pressable
+        className="flex-1 justify-center items-center p-6"
+        style={{ backgroundColor: theme.colors.backdrop }}
+        onPress={dismissKeyboard}
+      >
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>New project</Text>
+          <View
+            className="rounded-xl p-5 w-full max-w-[340px]"
+            style={{ backgroundColor: theme.colors.surfaceElevated }}
+          >
+            <Text
+              className="text-lg font-semibold mb-4"
+              style={{ color: theme.colors.text }}
+            >
+              New project
+            </Text>
 
             <TouchableOpacity
               onPress={selectImage}
-              style={styles.selectImageButton}
+              className="w-full rounded-lg overflow-hidden mb-4 active:opacity-90"
+              style={{
+                height: 160,
+                backgroundColor: theme.colors.muted,
+              }}
               activeOpacity={0.8}
             >
               {selectedUri ? (
                 <Image
+                  key={selectedUri}
                   source={{ uri: selectedUri }}
-                  style={styles.selectedImagePreview}
+                  style={{ width: "100%", height: 160 }}
                   contentFit="cover"
                 />
               ) : (
-                <View style={styles.selectImagePlaceholder}>
-                  <ImageOff size={40} color="#71717a" />
-                  <Text style={styles.selectImageText}>Select image</Text>
+                <View className="flex-1 items-center justify-center">
+                  <ImageOff size={40} color={theme.colors.textTertiary} />
+                  <Text
+                    className="mt-2 text-base"
+                    style={{ color: theme.colors.textTertiary }}
+                  >
+                    Select image
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
 
             <TextInput
-              style={styles.nameInput}
+              className="rounded-lg px-3.5 py-3 text-base border mb-5"
+              style={{
+                borderColor: theme.colors.border,
+                color: theme.colors.text,
+                backgroundColor: theme.colors.surfaceElevated,
+              }}
               placeholder="Project name"
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.colors.textTertiary}
               value={projectName}
               onChangeText={setProjectName}
               maxLength={50}
               autoCapitalize="words"
             />
 
-            <View style={styles.modalActions}>
+            <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={onClose}
-                style={[styles.modalButton, styles.modalButtonCancel]}
+                className="flex-1 py-3 rounded-lg items-center active:opacity-90"
+                style={{ backgroundColor: theme.colors.muted }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+                <Text
+                  className="text-base font-medium"
+                  style={{ color: theme.colors.textSecondary }}
+                >
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={createProject}
                 disabled={!selectedUri}
-                style={[
-                  styles.modalButton,
-                  styles.modalButtonCreate,
-                  !selectedUri && styles.modalButtonDisabled,
-                ]}
+                className="flex-1 py-3 rounded-lg items-center active:opacity-90"
+                style={{
+                  backgroundColor: !selectedUri ? theme.colors.border : theme.colors.primary,
+                  opacity: !selectedUri ? 0.8 : 1,
+                }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalButtonCreateText}>Create</Text>
+                <Text
+                  className="text-base font-semibold"
+                  style={{
+                    color: !selectedUri ? theme.colors.textTertiary : theme.colors.primaryForeground,
+                  }}
+                >
+                  Create
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -148,89 +188,3 @@ export function AddProjectModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  modalCard: {
-    backgroundColor: "#fafafa",
-    borderRadius: 16,
-    padding: 20,
-    width: "100%",
-    maxWidth: 340,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#18181b",
-    marginBottom: 16,
-  },
-  selectImageButton: {
-    width: "100%",
-    height: 160,
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: "#e4e4e7",
-    marginBottom: 16,
-  },
-  selectImagePlaceholder: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  selectImageText: {
-    fontSize: 15,
-    color: "#71717a",
-  },
-  selectedImagePreview: {
-    width: "100%",
-    height: "100%",
-  },
-  nameInput: {
-    borderWidth: 1,
-    borderColor: "#d4d4d8",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#18181b",
-    backgroundColor: "#fff",
-    marginBottom: 20,
-  },
-  modalActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  modalButtonCancel: {
-    backgroundColor: "#e4e4e7",
-  },
-  modalButtonCancelText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#3f3f46",
-  },
-  modalButtonCreate: {
-    backgroundColor: "#3b82f6",
-  },
-  modalButtonDisabled: {
-    backgroundColor: "#a1a1aa",
-    opacity: 0.8,
-  },
-  modalButtonCreateText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-});

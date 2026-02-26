@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hexToRybMix } from "../lib/colorMixing";
 import { MixDonutChart } from "./MixDonutChart";
+import { theme } from "../theme";
 
 export interface PaintMixBottomSheetProps {
   visible: boolean;
@@ -83,7 +84,10 @@ export function PaintMixBottomSheet({
     >
       <TouchableWithoutFeedback onPress={handleClose}>
         <Animated.View
-          style={[styles.backdrop, { opacity: backdropOpacity }]}
+          style={[
+            styles.backdrop,
+            { backgroundColor: theme.colors.backdrop, opacity: backdropOpacity },
+          ]}
           pointerEvents={visible ? "auto" : "none"}
         />
       </TouchableWithoutFeedback>
@@ -91,46 +95,95 @@ export function PaintMixBottomSheet({
         style={[
           styles.sheet,
           {
-            paddingBottom: insets.bottom + 16,
+            backgroundColor: theme.colors.surfaceElevated,
+            borderTopLeftRadius: theme.radius.lg,
+            borderTopRightRadius: theme.radius.lg,
+            paddingHorizontal: theme.spacing.xl,
+            paddingTop: theme.spacing.md,
+            paddingBottom: insets.bottom + theme.spacing.lg,
             maxHeight: windowHeight * 0.7,
           },
           { transform: [{ translateY: sheetTranslateY }] },
         ]}
         pointerEvents="box-none"
       >
-        <View style={styles.handle} />
+        <View
+          style={[
+            styles.handle,
+            {
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: theme.colors.border,
+              marginBottom: theme.spacing.sm,
+            },
+          ]}
+        />
         <View style={styles.content}>
-            <Text className="text-zinc-800 font-semibold text-lg mb-1">
-              Mix this color
+          <Text
+            className="font-semibold text-lg mb-1"
+            style={{ color: theme.colors.text }}
+          >
+            Mix this color
+          </Text>
+          <Text
+            className="text-sm mb-4"
+            style={{ color: theme.colors.textSecondary }}
+          >
+            Approximate mix using red, yellow, blue, white, and black.
+          </Text>
+          <View style={styles.swatchRow}>
+            <View
+              style={[
+                styles.targetSwatch,
+                {
+                  backgroundColor: hex,
+                  borderRadius: theme.radius.full,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            />
+            <Text
+              className="text-sm ml-3"
+              style={{ color: theme.colors.textSecondary }}
+            >
+              Target color
             </Text>
-            <Text className="text-zinc-600 text-sm mb-4">
-              Approximate mix using red, yellow, blue, white, and black.
-            </Text>
-            <View style={styles.swatchRow}>
-              <View
-                style={[styles.targetSwatch, { backgroundColor: hex }]}
-              />
-              <Text className="text-zinc-600 text-sm ml-3">
-                Target color
-              </Text>
+          </View>
+          {mix ? (
+            <View style={styles.chartWrap}>
+              <MixDonutChart mix={mix} />
             </View>
-            {mix ? (
-              <>
-                <View style={styles.chartWrap}>
-                  <MixDonutChart mix={mix} />
-                </View>
-              </>
-            ) : (
-              <Text className="text-zinc-500 text-sm">Unable to compute mix.</Text>
-            )}
+          ) : (
+            <Text
+              className="text-sm"
+              style={{ color: theme.colors.textTertiary }}
+            >
+              Unable to compute mix.
+            </Text>
+          )}
         </View>
         <TouchableOpacity
           onPress={handleClose}
-          style={styles.closeButton}
+          style={[
+            styles.closeButton,
+            {
+              marginTop: theme.spacing.lg,
+              paddingVertical: theme.spacing.md,
+              borderRadius: theme.radius.sm,
+              backgroundColor: theme.colors.muted,
+            },
+          ]}
           activeOpacity={0.8}
           accessibilityLabel="Close"
         >
-          <Text className="text-zinc-800 font-medium">Done</Text>
+          <Text
+            className="font-medium"
+            style={{ color: theme.colors.text }}
+          >
+            Done
+          </Text>
         </TouchableOpacity>
       </Animated.View>
     </Modal>
@@ -140,26 +193,15 @@ export function PaintMixBottomSheet({
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
   },
   sheet: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: 20,
-    paddingTop: 12,
   },
   handle: {
     alignSelf: "center",
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#d4d4d8",
-    marginBottom: 8,
   },
   content: {
     paddingBottom: 8,
@@ -172,18 +214,11 @@ const styles = StyleSheet.create({
   targetSwatch: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#d4d4d8",
   },
   chartWrap: {
     alignItems: "center",
   },
   closeButton: {
-    marginTop: 16,
-    paddingVertical: 12,
     alignItems: "center",
-    backgroundColor: "#f4f4f5",
-    borderRadius: 10,
   },
 });

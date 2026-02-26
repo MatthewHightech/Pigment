@@ -91,40 +91,39 @@ export default function WorkspaceScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-zinc-900 p-6">
-        <Text className="text-red-400 text-center">Failed to load project: {error.message}</Text>
+      <View className="flex-1 items-center justify-center bg-background p-6">
+        <Text className="text-destructive text-center">Failed to load project: {error.message}</Text>
       </View>
     );
   }
 
   if (isLoading || project === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-zinc-900">
+      <View className="flex-1 items-center justify-center bg-background">
         {isLoading ? (
-          <ActivityIndicator size="large" color="#fafafa" />
+          <ActivityIndicator size="large" color="#b45309" />
         ) : (
-          <Text className="text-zinc-500">Project not found</Text>
+          <Text className="text-text-tertiary">Project not found</Text>
         )}
       </View>
     );
   }
 
   return (
-    <View className="flex-1" style={{ paddingTop: insets.top }}>
-      <View className="flex-row items-center justify-between px-4 py-2">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <ChevronLeft size={24} color="#000000" />
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <View className="flex-row items-center justify-between px-4 py-3">
+        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-lg active:opacity-70">
+          <ChevronLeft size={24} color="#1c1917" />
         </TouchableOpacity>
-        <Text className="text-zinc-950 font-semibold text-base flex-1" numberOfLines={1}>
+        <Text className="text-text-primary font-semibold text-base flex-1 text-center" numberOfLines={1}>
           {project.name}
         </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      
-        <View className="px-4 py-2 border-b border-zinc-200">
-          <Text className="text-zinc-600 text-xs font-medium mb-2">Palette</Text>
-          {paletteColors.length > 0 && (
+      <View className="px-4 py-3 border-b border-border">
+        <Text className="text-text-secondary text-xs font-medium mb-2">Palette</Text>
+        {paletteColors.length > 0 && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -137,27 +136,21 @@ export default function WorkspaceScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setMixSheetColor(c.hexValue);
                 }}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: c.hexValue,
-                  borderWidth: 1,
-                  borderColor: "#d4d4d8",
-                }}
+                className="w-9 h-9 rounded-full border-2 border-border-strong active:opacity-90"
+                style={{ backgroundColor: c.hexValue }}
               />
             ))}
           </ScrollView>
-          )}
-          {paletteColors.length === 0 && (
-            <Text className="text-zinc-500 text-sm">Tap and hold to add colors</Text>
-          )}
-        </View>
+        )}
+        {paletteColors.length === 0 && (
+          <Text className="text-text-tertiary text-sm">Tap and hold on the image to add colors</Text>
+        )}
+      </View>
 
       <View className="flex-1" onLayout={(e) => setLayout(e.nativeEvent.layout)}>
         {isMissingImage ? (
-          <View className="flex-1 items-center justify-center bg-zinc-900">
-            <Text className="text-zinc-500">Missing image</Text>
+          <View className="flex-1 items-center justify-center bg-muted">
+            <Text className="text-muted-foreground">Missing image</Text>
           </View>
         ) : (
           <Pressable

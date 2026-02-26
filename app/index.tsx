@@ -79,14 +79,14 @@ export default function Index() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             confirmDeleteProject(item);
           }}
-          style={{ width: CELL_SIZE, height: CELL_SIZE + 36 }}
-          className="rounded-squircle overflow-hidden bg-zinc-800 border border-zinc-700/50"
+          style={{ width: CELL_SIZE, height: CELL_SIZE + 40 }}
+          className="rounded-2xl overflow-hidden bg-muted border border-border active:opacity-95"
         >
           <View style={{ width: CELL_SIZE, height: CELL_SIZE }}>
             {isMissing ? (
-              <View className="flex-1 items-center justify-center bg-zinc-800" style={{ width: CELL_SIZE, height: CELL_SIZE }}>
-                <ImageOff size={40} color="#71717a" />
-                <Text className="text-zinc-500 text-xs mt-2 px-2 text-center">
+              <View className="flex-1 items-center justify-center bg-muted" style={{ width: CELL_SIZE, height: CELL_SIZE }}>
+                <ImageOff size={40} color="#78716c" />
+                <Text className="text-muted-foreground text-xs mt-2 px-2 text-center">
                   Missing image
                 </Text>
               </View>
@@ -98,8 +98,8 @@ export default function Index() {
               />
             )}
           </View>
-          <View className="absolute bottom-0 left-0 right-0 bg-zinc-900/90 px-2 py-2">
-            <Text className="text-zinc-100 text-sm font-medium" numberOfLines={1}>
+          <View className="absolute bottom-0 left-0 right-0 bg-surface-overlay/95 px-3 py-2.5">
+            <Text className="text-text-inverse text-sm font-medium" numberOfLines={1}>
               {item.name}
             </Text>
           </View>
@@ -111,29 +111,29 @@ export default function Index() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-cream-50 items-center justify-center p-6">
-        <Text className="text-red-600 text-center">Failed to load projects: {error.message}</Text>
+      <View className="flex-1 bg-background items-center justify-center p-6">
+        <Text className="text-destructive text-center text-base">Failed to load projects: {error.message}</Text>
       </View>
     );
   }
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-cream-50 items-center justify-center p-6">
-        <Text className="text-zinc-500">Loading projects…</Text>
+      <View className="flex-1 bg-background items-center justify-center p-6">
+        <Text className="text-text-tertiary">Loading projects…</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-cream-50 pt-16 px-4 pb-6">
+    <View className="flex-1 bg-background pt-16 px-4 pb-6">
       <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-2xl font-semibold text-zinc-950">Pigment</Text>
+        <Text className="text-2xl font-semibold text-text-primary">Pigment</Text>
         <TouchableOpacity
           onPress={openAddModal}
-          className="rounded-squircle-sm w-10 h-10 bg-zinc-800 border border-zinc-700 items-center justify-center"
+          className="rounded-xl w-11 h-11 bg-primary items-center justify-center active:opacity-90"
         >
-          <Plus size={22} color="#fafafa" />
+          <Plus size={22} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
@@ -144,26 +144,24 @@ export default function Index() {
       />
 
       {projectList.length > 0 ? (
-        <> 
-      <FlatList
-        data={projectList}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderItem}
-        numColumns={2}
-        columnWrapperStyle={{ gap: 12, marginBottom: 12 }}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-zinc-500 text-base mb-2">No projects yet</Text>
-            <Text className="text-zinc-600 text-sm">Tap + to add an image</Text>
-          </View>
-        }
-      />
-      </>
+        <FlatList
+          data={projectList}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12, marginBottom: 12 }}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center py-20">
+              <Text className="text-text-secondary text-base mb-2">No projects yet</Text>
+              <Text className="text-text-tertiary text-sm">Tap + to add an image</Text>
+            </View>
+          }
+        />
       ) : (
         <View className="flex-1 items-center justify-center py-20">
-          <Text className="text-zinc-500 text-base mb-2">No projects yet</Text>
-          <Text className="text-zinc-600 text-sm">Tap + to add an image</Text>
+          <Text className="text-text-secondary text-base mb-2">No projects yet</Text>
+          <Text className="text-text-tertiary text-sm">Tap + to add an image</Text>
         </View>
       )}
     </View>
