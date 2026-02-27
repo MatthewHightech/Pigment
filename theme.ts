@@ -6,7 +6,7 @@
 export const theme = {
   colors: {
     backdrop: "rgba(0,0,0,0.45)",
-    background: "#f5f2eb",
+    background: "#faf2e5",
     surface: "#faf8f3",
     surfaceElevated: "#ffffff",
     surfaceOverlay: "#1c1917",

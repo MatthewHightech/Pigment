@@ -131,7 +131,7 @@ export default function Index() {
       <View className="flex-row items-center justify-between mb-6">
         <View className="flex-row items-center flex-1 gap-3">
           <Image
-            source={require("../assets/images/icon.png")}
+            source={require("../assets/images/icon_trans.png")}
             style={{ width: 56, height: 56 }}
             contentFit="contain"
           />
