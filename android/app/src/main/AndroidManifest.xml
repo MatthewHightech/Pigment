@@ -26,6 +26,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="pigment"/>
+        <data android:scheme="exp+pigment"/>
       </intent-filter>
     </activity>
   </application>
