@@ -7,6 +7,7 @@ module.exports = {
       colors: {
         backdrop: "rgba(0,0,0,0.45)",
         background: "#faf2e5",
+        "dark-background": "#e4d2b6",
         surface: "#faf8f3",
         "surface-elevated": "#ffffff",
         "surface-overlay": "#1c1917",

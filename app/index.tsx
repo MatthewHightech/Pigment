@@ -10,6 +10,7 @@ import { db } from "../db";
 import { projects } from "../db/schema";
 import { AddProjectModal } from "../components/AddProjectModal";
 import { theme } from "../theme";
+import { useProjectColors } from "../hooks/useProjectColors";
 
 import "../global.css";
 
@@ -71,42 +72,17 @@ export default function Index() {
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: (typeof projectList)[number] }) => {
-      const isMissing = item.imageUri === PLACEHOLDER_URI || !item.imageUri;
-      return (
-        <Pressable
-          onPress={() => openProject(item.id)}
-          onLongPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            confirmDeleteProject(item);
-          }}
-          style={{ width: CELL_SIZE, height: CELL_SIZE + 40 }}
-          className="rounded-2xl overflow-hidden bg-muted border border-border active:opacity-95"
-        >
-          <View style={{ width: CELL_SIZE, height: CELL_SIZE }}>
-            {isMissing ? (
-              <View className="flex-1 items-center justify-center bg-muted" style={{ width: CELL_SIZE, height: CELL_SIZE }}>
-                <ImageOff size={40} color="#78716c" />
-                <Text className="text-muted-foreground text-xs mt-2 px-2 text-center">
-                  Missing image
-                </Text>
-              </View>
-            ) : (
-              <Image
-                source={{ uri: item.imageUri }}
-                style={{ width: CELL_SIZE, height: CELL_SIZE }}
-                contentFit="cover"
-              />
-            )}
-          </View>
-          <View className="absolute bottom-0 left-0 right-0 bg-surface-overlay/95 px-3 py-2.5">
-            <Text className="text-text-inverse text-sm font-medium" numberOfLines={1}>
-              {item.name}
-            </Text>
-          </View>
-        </Pressable>
-      );
-    },
+    ({ item }: { item: (typeof projectList)[number] }) => (
+      <ProjectCard
+        item={item}
+        cellSize={CELL_SIZE}
+        onPress={() => openProject(item.id)}
+        onLongPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          confirmDeleteProject(item);
+        }}
+      />
+    ),
     [openProject, confirmDeleteProject]
   );
 
@@ -159,6 +135,8 @@ export default function Index() {
         onCreate={handleCreateProject}
       />
 
+      <Text className="text-text-secondary text-xl font-bold mb-2 mx-2">My Projects</Text>
+
       {projectList.length > 0 ? (
         <FlatList
           data={projectList}
@@ -181,5 +159,87 @@ export default function Index() {
         </View>
       )}
     </View>
+  );
+}
+
+type ProjectItem = typeof projects.$inferSelect;
+
+interface ProjectCardProps {
+  item: ProjectItem;
+  cellSize: number;
+  onPress: () => void;
+  onLongPress: () => void;
+}
+
+const MAX_SWATCHES = 5;
+
+function ProjectCard({ item, cellSize, onPress, onLongPress }: ProjectCardProps) {
+  const isMissing = item.imageUri === PLACEHOLDER_URI || !item.imageUri;
+  const { colors: paletteColors } = useProjectColors(item.id);
+  const swatchHexes = paletteColors.slice(0, MAX_SWATCHES).map((c) => c.hexValue);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={{ width: cellSize, height: cellSize + 60 }}
+      className="rounded-2xl overflow-hidden bg-dark-background border border-border active:opacity-95 p-3"
+    >
+      <View style={{ width: cellSize, height: cellSize }}>
+        {isMissing ? (
+          <View
+            className="flex-1 items-center justify-center bg-dark-background"
+            style={{ width: cellSize, height: cellSize }}
+          >
+            <ImageOff size={40} color="#78716c" />
+            <Text className="text-muted-foreground text-xs mt-2 px-2 text-center">
+              Missing image
+            </Text>
+          </View>
+        ) : (
+          <View style={{ position: "relative" }}>
+            <Image
+              source={{ uri: item.imageUri }}
+              style={{ width: cellSize - 24, height: cellSize, borderRadius: 12 }}
+              contentFit="cover"
+            />
+            {swatchHexes.length > 0 && (
+              <View
+                className="flex-row overflow-hidden"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: cellSize - 24,
+                  height: 20,
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0,
+                  borderBottomLeftRadius: 12,
+                  borderBottomRightRadius: 12,
+                }}
+              >
+                {swatchHexes.map((hex, index) => (
+                  <View
+                    key={hex}
+                    style={{
+                      flex: 1,
+                      backgroundColor: hex,
+                      // Slight negative margin to avoid hairline gaps between swatches
+                      marginLeft: index === 0 ? 0 : -1,
+                    }}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+      <View className="mt-3">
+        <Text className="text-base font-semibold text-text-secondary" numberOfLines={1}>
+          {item.name}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
