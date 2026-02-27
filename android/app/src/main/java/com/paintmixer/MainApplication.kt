@@ -1,4 +1,4 @@
-package com.anonymous.Pigment
+package com.paintmixer
 
 import android.app.Application
 import android.content.res.Configuration

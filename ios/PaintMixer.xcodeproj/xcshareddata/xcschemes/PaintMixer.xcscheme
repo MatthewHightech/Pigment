@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Pigment.app"
-               BlueprintName = "Pigment"
-               ReferencedContainer = "container:Pigment.xcodeproj">
+               BuildableName = "PaintMixer.app"
+               BlueprintName = "PaintMixer"
+               ReferencedContainer = "container:PaintMixer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "PigmentTests.xctest"
-               BlueprintName = "PigmentTests"
-               ReferencedContainer = "container:Pigment.xcodeproj">
+               BuildableName = "PaintMixerTests.xctest"
+               BlueprintName = "PaintMixerTests"
+               ReferencedContainer = "container:PaintMixer.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Pigment.app"
-            BlueprintName = "Pigment"
-            ReferencedContainer = "container:Pigment.xcodeproj">
+            BuildableName = "PaintMixer.app"
+            BlueprintName = "PaintMixer"
+            ReferencedContainer = "container:PaintMixer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Pigment.app"
-            BlueprintName = "Pigment"
-            ReferencedContainer = "container:Pigment.xcodeproj">
+            BuildableName = "PaintMixer.app"
+            BlueprintName = "PaintMixer"
+            ReferencedContainer = "container:PaintMixer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
