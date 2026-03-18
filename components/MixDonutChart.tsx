@@ -16,6 +16,15 @@ function degToRad(deg: number) {
   return (deg * Math.PI) / 180;
 }
 
+interface DonutSegment {
+  key: keyof RybMix;
+  label: string;
+  hex: string;
+  percent: number;
+  startAngle: number;
+  sweepAngle: number;
+}
+
 /**
  * Builds a single donut segment path (from startAngle for sweepAngle degrees).
  * Skia: 0° = positive x-axis, positive sweep = clockwise.
@@ -46,12 +55,48 @@ function buildSegmentPath(
   return path;
 }
 
+/**
+ * If there are more than 2 segments, drop any segments smaller than 9% and
+ * redistribute their percentage proportionally across the remaining segments.
+ * This keeps the chart readable while preserving relative proportions.
+ */
+function adjustSegments(segments: DonutSegment[]): DonutSegment[] {
+  if (segments.length <= 2) return segments;
+
+  const total = segments.reduce((sum, seg) => sum + seg.percent, 0);
+  if (total <= 0) return segments;
+
+  const major = segments.filter((seg) => seg.percent >= 7);
+  // If everything is small, or nothing qualifies, keep the original breakdown.
+  if (major.length === 0 || major.length === segments.length) {
+    return segments;
+  }
+
+  const keptTotal = major.reduce((sum, seg) => sum + seg.percent, 0);
+  if (keptTotal <= 0) return segments;
+
+  let start = 0;
+  return major.map((seg) => {
+    const normalizedPercent = (seg.percent / keptTotal) * total;
+    const sweepAngle = (normalizedPercent / total) * 360;
+    const adjusted: DonutSegment = {
+      ...seg,
+      percent: normalizedPercent,
+      startAngle: start,
+      sweepAngle,
+    };
+    start += sweepAngle;
+    return adjusted;
+  });
+}
+
 export interface MixDonutChartProps {
   mix: RybMix;
 }
 
 export function MixDonutChart({ mix }: MixDonutChartProps) {
-  const segments = useMemo(() => getRybSegments(mix), [mix]);
+  const rawSegments = useMemo(() => getRybSegments(mix), [mix]);
+  const segments = useMemo(() => adjustSegments(rawSegments), [rawSegments]);
 
   if (segments.length === 0) {
     return (
