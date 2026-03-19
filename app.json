@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Paint Mixer",
+    "name": "Pigment",
     "slug": "Pigment",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Pigment"
+      "bundleIdentifier": "com.mattsmith.Pigment",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.Pigment"
+      "package": "com.mattsmith.Pigment"
     },
     "web": {
       "output": "static",
