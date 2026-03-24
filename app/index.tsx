@@ -118,7 +118,7 @@ export default function Index() {
               color: theme.colors.primary,
             }}
           >
-            Paint Mixer
+            Pigment
           </Text>
         </View>
         <TouchableOpacity
