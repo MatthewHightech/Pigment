@@ -14,8 +14,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "This app uses access to your photos to add images to projects so you can build your palettes."
-      },
-      "buildNumber": "2"
+      }
     },
     "android": {
       "adaptiveIcon": {
