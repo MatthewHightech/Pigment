@@ -136,6 +136,8 @@ export function AddProjectModal({
             <TextInput
               className="rounded-lg px-3.5 py-3 text-base border mb-5"
               style={{
+                ...theme.typography.body,
+                lineHeight: 22,
                 borderColor: theme.colors.border,
                 color: theme.colors.text,
                 backgroundColor: theme.colors.surfaceElevated,
