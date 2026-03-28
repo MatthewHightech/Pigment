@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Pressable,
   Alert,
+  useWindowDimensions,
 } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -28,6 +29,7 @@ export function AddProjectModal({
   onClose,
   onCreate,
 }: AddProjectModalProps) {
+  const { height: windowHeight } = useWindowDimensions();
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
 
@@ -88,9 +90,16 @@ export function AddProjectModal({
       onRequestClose={onClose}
     >
       <Pressable
-        className="flex-1 justify-center items-center p-6"
-        style={{ backgroundColor: theme.colors.backdrop }}
         onPress={dismissKeyboard}
+        style={{
+          flex: 1,
+          justifyContent: "flex-start",
+          alignItems: "center",
+          paddingHorizontal: theme.spacing.xl,
+          paddingBottom: theme.spacing.xl,
+          paddingTop: windowHeight * 0.18,
+          backgroundColor: theme.colors.backdrop,
+        }}
       >
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
           <View
