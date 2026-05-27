@@ -3,19 +3,23 @@ import {
   View,
   Text,
   Modal,
-  TouchableOpacity,
   StyleSheet,
   PanResponder,
   Image,
   Alert,
+  Pressable,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { X } from "lucide-react-native";
 import { samplePixelColor } from "../lib/colorSampler";
-import { theme } from "../theme";
+import { hexToHsl } from "../lib/colorUtils";
+import { useTheme } from "../hooks/ThemeContext";
+import { fontFamilies } from "../theme";
 
-const LOUPE_SIZE = 160;
+const LOUPE_SIZE = 256;
 const LOUPE_ZOOM = 1;
-const CROSSHAIR_R = 12;
+const CROSSHAIR_R = 6;
 
 export interface ColorPickerOverlayProps {
   visible: boolean;
@@ -48,9 +52,14 @@ export function ColorPickerOverlay({
   onConfirm,
   onCancel,
 }: ColorPickerOverlayProps) {
+  const insets = useSafeAreaInsets();
+  const { theme, colorScheme } = useTheme();
+  const ctaBackground =
+    colorScheme === "dark" ? theme.colors.primary : theme.colors.onSurface;
   const [pixel, setPixel] = useState(() =>
     clampPixel(initialPixel.x, initialPixel.y, imageWidth, imageHeight)
   );
+  const [previewHex, setPreviewHex] = useState("#823B18");
   const [isSampling, setIsSampling] = useState(false);
 
   const pixelRef = useRef(pixel);
@@ -69,6 +78,17 @@ export function ColorPickerOverlay({
     }
   }, [visible, initialPixel.x, initialPixel.y, imageWidth, imageHeight]);
 
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    samplePixelColor(imageUri, imageWidth, imageHeight, pixel.x, pixel.y).then((hex) => {
+      if (!cancelled && hex) setPreviewHex(hex);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, imageUri, imageWidth, imageHeight, pixel.x, pixel.y]);
+
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -78,12 +98,11 @@ export function ColorPickerOverlay({
           startRef.current = { x: pixelRef.current.x, y: pixelRef.current.y };
         },
         onPanResponderMove: (_, gestureState) => {
-          const scale = LOUPE_ZOOM;
           const start = startRef.current;
           setPixel(
             clampPixel(
-              start.x + gestureState.dx / scale,
-              start.y + gestureState.dy / scale,
+              start.x + gestureState.dx / LOUPE_ZOOM,
+              start.y + gestureState.dy / LOUPE_ZOOM,
               imageWidth,
               imageHeight
             )
@@ -125,100 +144,225 @@ export function ColorPickerOverlay({
   const imgDisplayH = imageHeight * scale;
   const offsetX = LOUPE_SIZE / 2 - pixel.x * scale;
   const offsetY = LOUPE_SIZE / 2 - pixel.y * scale;
+  const hsl = hexToHsl(previewHex);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
-      <View style={[styles.backdrop, { backgroundColor: theme.colors.backdrop }]}>
+    <Modal visible={visible} animationType="fade" onRequestClose={onCancel}>
+      <View style={[styles.root, { backgroundColor: theme.colors.surfaceContainerLow }]}>
+        <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFillObject} blurRadius={2} />
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.15)" }]} />
+
         <View
-          style={[
-            styles.content,
-            {
-              backgroundColor: theme.colors.surfaceElevated,
-              borderRadius: theme.radius.lg,
-              padding: theme.spacing.xl,
-            },
-          ]}
-          {...panResponder.panHandlers}
+          style={{
+            paddingTop: insets.top + theme.spacing.md,
+            paddingHorizontal: theme.spacing["2xl"],
+            paddingBottom: theme.spacing.lg,
+            backgroundColor: theme.colors.surfaceContainerLow,
+          }}
         >
-          <View style={styles.loupeContainer}>
-            <View style={[styles.loupe, { backgroundColor: theme.colors.muted }]}>
-              <Image
-                source={{ uri: imageUri }}
-                style={[
-                  styles.loupeImage,
-                  {
-                    left: offsetX,
-                    top: offsetY,
-                    width: imgDisplayW,
-                    height: imgDisplayH,
-                  },
-                ]}
-                resizeMode="stretch"
-              />
-            </View>
-            <View
-              style={[styles.crosshair, { borderColor: "rgba(255,255,255,0.9)" }]}
-              pointerEvents="none"
-            />
+          <View className="flex-row items-center justify-between">
+            <Pressable onPress={onCancel} hitSlop={12}>
+              <X size={24} color={theme.colors.primary} />
+            </Pressable>
+            <Text
+              style={{
+                fontFamily: fontFamilies.displayItalic,
+                fontSize: 24,
+                color: theme.colors.onSurface,
+              }}
+            >
+              Pigment
+            </Text>
+            <Text
+              style={{
+                fontFamily: fontFamilies.label,
+                fontSize: 10,
+                letterSpacing: 1.6,
+                textTransform: "uppercase",
+                color: `${theme.colors.onSurface}99`,
+              }}
+            >
+              Sampler
+            </Text>
           </View>
-          <Text
+        </View>
+
+        <View style={styles.viewport} {...panResponder.panHandlers}>
+          <View
             style={[
-              styles.hint,
+              styles.loupeRing,
               {
-                color: theme.colors.textSecondary,
-                marginBottom: theme.spacing.lg,
+                width: LOUPE_SIZE,
+                height: LOUPE_SIZE,
+                borderRadius: LOUPE_SIZE / 2,
+                borderWidth: 3,
+                borderColor: "rgba(255, 255, 255, 0.95)",
+                shadowColor: "#ffffff",
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.5,
+                shadowRadius: 12,
+                elevation: 8,
               },
             ]}
           >
-            Drag to move • Tap Add to pick color
-          </Text>
-          <View style={styles.actions}>
-            <TouchableOpacity
+            <View
               style={[
-                styles.button,
+                styles.loupe,
                 {
-                  backgroundColor: theme.colors.muted,
-                  borderRadius: theme.radius.sm,
+                  width: LOUPE_SIZE,
+                  height: LOUPE_SIZE,
+                  borderRadius: LOUPE_SIZE / 2,
+                  backgroundColor: theme.colors.surfaceContainer,
                 },
               ]}
-              onPress={onCancel}
-              activeOpacity={0.8}
+            >
+              <Image
+                source={{ uri: imageUri }}
+                style={{
+                  position: "absolute",
+                  left: offsetX,
+                  top: offsetY,
+                  width: imgDisplayW,
+                  height: imgDisplayH,
+                }}
+                resizeMode="stretch"
+              />
+            </View>
+            <View style={[styles.crosshairH, { backgroundColor: "rgba(255,255,255,0.8)" }]} />
+            <View style={[styles.crosshairV, { backgroundColor: "rgba(255,255,255,0.8)" }]} />
+            <View
+              style={[
+                styles.centerDot,
+                {
+                  width: CROSSHAIR_R * 2,
+                  height: CROSSHAIR_R * 2,
+                  borderRadius: CROSSHAIR_R,
+                  backgroundColor: "#ffffff",
+                },
+              ]}
+            />
+          </View>
+
+          <View style={styles.previewBubble}>
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: previewHex,
+                borderWidth: 4,
+                borderColor: "#ffffff",
+              }}
+            />
+            <View
+              style={{
+                marginTop: theme.spacing.sm,
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: theme.spacing.xs,
+                borderRadius: theme.radius.full,
+                backgroundColor: theme.colors.glass,
+              }}
             >
               <Text
-                style={[
-                  styles.buttonText,
-                  { color: theme.colors.text, fontWeight: "500" },
-                ]}
+                style={{
+                  fontFamily: fontFamilies.label,
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                  color: theme.colors.onSurface,
+                }}
               >
-                Cancel
+                {previewHex.toUpperCase()}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                {
-                  backgroundColor: theme.colors.primary,
-                  borderRadius: theme.radius.sm,
-                },
-              ]}
+            </View>
+          </View>
+        </View>
+
+        <View
+          style={{
+            position: "absolute",
+            bottom: insets.bottom + theme.spacing.lg,
+            left: theme.spacing.lg,
+            right: theme.spacing.lg,
+          }}
+        >
+          <View style={{ gap: theme.spacing.lg }}>
+            <View
+              style={{
+                backgroundColor: theme.colors.glass,
+                borderRadius: theme.radius["3xl"],
+                padding: theme.spacing["2xl"],
+                borderWidth: 1,
+                borderColor: theme.colors.glassBorder,
+                gap: theme.spacing.lg,
+              }}
+            >
+              <View className="flex-row" style={{ gap: theme.spacing.lg }}>
+                {[
+                  { label: "Hue", value: `${hsl.h}°` },
+                  { label: "Saturation", value: `${hsl.s}%` },
+                  { label: "Luminance", value: `${hsl.l}%` },
+                ].map((item) => (
+                  <View key={item.label} style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontFamily: fontFamilies.label,
+                        fontSize: 10,
+                        letterSpacing: 0.8,
+                        textTransform: "uppercase",
+                        color: `${theme.colors.onSurfaceVariant}99`,
+                        marginBottom: theme.spacing.xs,
+                      }}
+                    >
+                      {item.label}
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: fontFamilies.bodyMedium,
+                        fontSize: 14,
+                        color: theme.colors.onSurface,
+                      }}
+                    >
+                      {item.value}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <Pressable
               onPress={handleAdd}
               disabled={isSampling}
-              activeOpacity={0.8}
+              style={({ pressed }) => ({
+                width: "100%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: theme.spacing.lg,
+                borderRadius: theme.radius.full,
+                backgroundColor: isSampling
+                  ? theme.colors.surfaceContainerHighest
+                  : ctaBackground,
+                opacity: pressed && !isSampling ? 0.9 : 1,
+                shadowColor: theme.colors.onSurface,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.2,
+                shadowRadius: 16,
+                elevation: 4,
+              })}
             >
               <Text
-                style={[
-                  styles.buttonText,
-                  { color: theme.colors.primaryForeground, fontWeight: "600" },
-                ]}
+                style={{
+                  fontFamily: fontFamilies.label,
+                  fontSize: 12,
+                  letterSpacing: 1.6,
+                  textTransform: "uppercase",
+                  fontWeight: "700",
+                  color: theme.colors.secondary,
+                }}
               >
-                {isSampling ? "…" : "Add to palette"}
+                {isSampling ? "Sampling…" : "Add to Palette"}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
+            </View>
           </View>
         </View>
       </View>
@@ -227,60 +371,40 @@ export function ColorPickerOverlay({
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  root: {
     flex: 1,
+  },
+  viewport: {
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
   },
-  content: {
+  loupeRing: {
     alignItems: "center",
-    maxWidth: 320,
-  },
-  loupeContainer: {
-    marginBottom: 12,
-    borderRadius: LOUPE_SIZE / 2,
-    borderWidth: 1,
-    borderColor: "#d6d3d1",
+    justifyContent: "center",
     position: "relative",
-    width: LOUPE_SIZE,
-    height: LOUPE_SIZE,
   },
   loupe: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: LOUPE_SIZE,
-    height: LOUPE_SIZE,
     overflow: "hidden",
-    borderRadius: LOUPE_SIZE / 2,
   },
-  loupeImage: {
+  crosshairH: {
     position: "absolute",
+    width: "100%",
+    height: 1,
   },
-  crosshair: {
+  crosshairV: {
     position: "absolute",
-    left: LOUPE_SIZE / 2 - CROSSHAIR_R,
-    top: LOUPE_SIZE / 2 - CROSSHAIR_R,
-    width: CROSSHAIR_R * 2,
-    height: CROSSHAIR_R * 2,
-    borderRadius: CROSSHAIR_R,
-    borderWidth: 2,
+    height: "100%",
+    width: 1,
   },
-  hint: {
-    fontSize: 13,
+  centerDot: {
+    position: "absolute",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.1)",
   },
-  actions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    minWidth: 120,
+  previewBubble: {
+    position: "absolute",
+    top: "18%",
     alignItems: "center",
-  },
-  buttonText: {
-    fontSize: 16,
   },
 });

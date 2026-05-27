@@ -1,28 +1,35 @@
-import { View, Text, TouchableOpacity, FlatList, Alert, Dimensions, Pressable } from "react-native";
-import { Image } from "expo-image";
+import {
+  View,
+  Text,
+  FlatList,
+  Alert,
+  Dimensions,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import * as Haptics from "expo-haptics";
-import { Plus, ImageOff } from "lucide-react-native";
+import { Plus, Settings } from "lucide-react-native";
 import { eq } from "drizzle-orm";
 import { useProjects } from "../hooks/ProjectsContext";
+import { useTheme } from "../hooks/ThemeContext";
 import { db } from "../db";
 import { projects } from "../db/schema";
 import { AddProjectModal } from "../components/AddProjectModal";
-import { theme } from "../theme";
-import { useProjectColors } from "../hooks/useProjectColors";
+import { AppHeader, HeaderIconButton } from "../components/ui/AppHeader";
+import { ProjectCard } from "../components/ui/ProjectCard";
+import { EmptyStudio } from "../components/ui/EmptyStudio";
+import { fontFamilies } from "../theme";
 
 import "../global.css";
 
-
-const PLACEHOLDER_URI = "missing";
 const COLS = 2;
-const GAP = 12;
-const PAD = 16;
+const GAP = 24;
+const PAD = 32;
 const CELL_SIZE = (Dimensions.get("window").width - PAD * 2 - GAP) / COLS;
 
 export default function Index() {
   const router = useRouter();
+  const { theme } = useTheme();
   const { projects: projectList, isLoading, error } = useProjects();
   const [addModalVisible, setAddModalVisible] = useState(false);
 
@@ -44,7 +51,7 @@ export default function Index() {
       router.push({ pathname: "/workspace/[id]", params: { id: String(id) } } as any);
     },
     [router]
-  ) as (id: number) => void;
+  );
 
   const confirmDeleteProject = useCallback((item: (typeof projectList)[number]) => {
     Alert.alert(
@@ -74,7 +81,9 @@ export default function Index() {
   const renderItem = useCallback(
     ({ item }: { item: (typeof projectList)[number] }) => (
       <ProjectCard
-        item={item}
+        id={item.id}
+        name={item.name}
+        imageUri={item.imageUri}
         cellSize={CELL_SIZE}
         onPress={() => openProject(item.id)}
         onLongPress={() => {
@@ -88,46 +97,49 @@ export default function Index() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-background items-center justify-center p-6">
-        <Text className="text-destructive text-center text-base">Failed to load projects: {error.message}</Text>
+      <View
+        className="flex-1 items-center justify-center p-6"
+        style={{ backgroundColor: theme.colors.background }}
+      >
+        <Text style={{ color: theme.colors.error, fontFamily: fontFamilies.body, textAlign: "center" }}>
+          Failed to load projects: {error.message}
+        </Text>
       </View>
     );
   }
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center p-6">
-        <Text className="text-text-tertiary">Loading projects…</Text>
+      <View
+        className="flex-1 items-center justify-center p-6"
+        style={{ backgroundColor: theme.colors.background }}
+      >
+        <Text style={{ color: theme.colors.onSurfaceVariant, fontFamily: fontFamilies.body }}>
+          Loading projects…
+        </Text>
       </View>
     );
   }
 
+  const isEmpty = projectList.length === 0;
+
   return (
-    <View className="flex-1 bg-background pt-16 px-4 pb-6">
-      <View className="flex-row items-center justify-between mb-6">
-        <View className="flex-row items-center flex-1 gap-3">
-          <Image
-            source={require("../assets/images/icon_trans.png")}
-            style={{ width: 56, height: 56 }}
-            contentFit="contain"
-          />
-          <Text
-            style={{
-              fontFamily: "PlayfairDisplay_600SemiBold",
-              fontSize: 30,
-              color: theme.colors.primary,
-            }}
+    <View className="flex-1" style={{ backgroundColor: theme.colors.background }}>
+      <AppHeader
+        left={
+          <HeaderIconButton
+            onPress={() => router.push({ pathname: "/settings" } as any)}
+            accessibilityLabel="Settings"
           >
-            Pigment
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={openAddModal}
-          className="rounded-xl w-11 h-11 bg-primary items-center justify-center active:opacity-90"
-        >
-          <Plus size={22} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
+            <Settings size={24} color={theme.colors.primary} strokeWidth={1.75} />
+          </HeaderIconButton>
+        }
+        right={
+          <HeaderIconButton onPress={openAddModal} accessibilityLabel="Add project">
+            <Plus size={24} color={theme.colors.primary} strokeWidth={2} />
+          </HeaderIconButton>
+        }
+      />
 
       <AddProjectModal
         visible={addModalVisible}
@@ -135,111 +147,48 @@ export default function Index() {
         onCreate={handleCreateProject}
       />
 
-      <Text className="text-text-secondary text-xl font-bold mb-2 mx-2">My Projects</Text>
-
-      {projectList.length > 0 ? (
+      {isEmpty ? (
+        <EmptyStudio onAddPress={openAddModal} />
+      ) : (
         <FlatList
           data={projectList}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           numColumns={2}
-          columnWrapperStyle={{ gap: 12, marginBottom: 12 }}
-          contentContainerStyle={{ paddingBottom: 24 }}
-          ListEmptyComponent={
-            <View className="flex-1 items-center justify-center py-20">
-              <Text className="text-text-secondary text-base mb-2">No projects yet</Text>
-              <Text className="text-text-tertiary text-sm">Tap + to add an image</Text>
+          columnWrapperStyle={{ gap: GAP, marginBottom: GAP }}
+          contentContainerStyle={{
+            paddingHorizontal: PAD,
+            paddingTop: theme.spacing.lg,
+            paddingBottom: theme.spacing["5xl"],
+          }}
+          ListHeaderComponent={
+            <View style={{ marginBottom: theme.spacing["4xl"] }}>
+              <Text
+                style={{
+                  fontFamily: fontFamilies.label,
+                  fontSize: 10,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: theme.colors.primary,
+                  marginBottom: theme.spacing.md,
+                }}
+              >
+                Collection
+              </Text>
+              <Text
+                style={{
+                  fontFamily: fontFamilies.displayItalic,
+                  fontSize: 48,
+                  lineHeight: 48,
+                  color: theme.colors.onSurface,
+                }}
+              >
+                My Projects
+              </Text>
             </View>
           }
         />
-      ) : (
-        <View className="flex-1 items-center justify-center py-20">
-          <Text className="text-text-secondary text-base mb-2">No projects yet</Text>
-          <Text className="text-text-tertiary text-sm">Tap + to add an image</Text>
-        </View>
       )}
     </View>
-  );
-}
-
-type ProjectItem = typeof projects.$inferSelect;
-
-interface ProjectCardProps {
-  item: ProjectItem;
-  cellSize: number;
-  onPress: () => void;
-  onLongPress: () => void;
-}
-
-const MAX_SWATCHES = 5;
-
-function ProjectCard({ item, cellSize, onPress, onLongPress }: ProjectCardProps) {
-  const isMissing = item.imageUri === PLACEHOLDER_URI || !item.imageUri;
-  const { colors: paletteColors } = useProjectColors(item.id);
-  const swatchHexes = paletteColors.slice(0, MAX_SWATCHES).map((c) => c.hexValue);
-
-  return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={onLongPress}
-      style={{ width: cellSize, height: cellSize + 60 }}
-      className="rounded-2xl overflow-hidden bg-dark-background border border-border active:opacity-95 p-3"
-    >
-      <View style={{ width: cellSize, height: cellSize }}>
-        {isMissing ? (
-          <View
-            className="flex-1 items-center justify-center bg-dark-background"
-            style={{ width: cellSize, height: cellSize }}
-          >
-            <ImageOff size={40} color="#78716c" />
-            <Text className="text-muted-foreground text-xs mt-2 px-2 text-center">
-              Missing image
-            </Text>
-          </View>
-        ) : (
-          <View style={{ position: "relative" }}>
-            <Image
-              source={{ uri: item.imageUri }}
-              style={{ width: cellSize - 24, height: cellSize, borderRadius: 12 }}
-              contentFit="cover"
-            />
-            {swatchHexes.length > 0 && (
-              <View
-                className="flex-row overflow-hidden"
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  width: cellSize - 24,
-                  height: 20,
-                  borderTopLeftRadius: 0,
-                  borderTopRightRadius: 0,
-                  borderBottomLeftRadius: 12,
-                  borderBottomRightRadius: 12,
-                }}
-              >
-                {swatchHexes.map((hex, index) => (
-                  <View
-                    key={hex}
-                    style={{
-                      flex: 1,
-                      backgroundColor: hex,
-                      // Slight negative margin to avoid hairline gaps between swatches
-                      marginLeft: index === 0 ? 0 : -1,
-                    }}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-      <View className="mt-3">
-        <Text className="text-base font-semibold text-text-secondary" numberOfLines={1}>
-          {item.name}
-        </Text>
-      </View>
-    </Pressable>
   );
 }

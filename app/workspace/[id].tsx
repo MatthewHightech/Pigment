@@ -3,7 +3,6 @@ import {
   Text,
   View,
   Image,
-  TouchableOpacity,
   ActivityIndicator,
   Pressable,
   ScrollView,
@@ -11,26 +10,37 @@ import {
 } from "react-native";
 import { ChevronLeft } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { eq } from "drizzle-orm";
 import { useProjects } from "../../hooks/ProjectsContext";
 import { useProjectColors } from "../../hooks/useProjectColors";
+import { useTheme } from "../../hooks/ThemeContext";
 import { ColorPickerOverlay } from "../../components/ColorPickerOverlay";
 import { PaintMixBottomSheet } from "../../components/PaintMixBottomSheet";
-import { getContainRect, viewToImagePixel } from "../../lib/imageLayout";
+import { PaletteGrid } from "../../components/ui/PaletteSwatch";
+import { DestructiveTextButton } from "../../components/ui/Buttons";
+import { viewToImagePixel } from "../../lib/imageLayout";
+import { db } from "../../db";
+import { projects } from "../../db/schema";
+import { fontFamilies } from "../../theme";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const HERO_WIDTH = SCREEN_WIDTH - 32;
 
 export default function WorkspaceScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
-  const [layout, setLayout] = useState({ width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
   const [pickerOpen, setPickerOpen] = useState(false);
   const [initialPickerPixel, setInitialPickerPixel] = useState({ x: 0, y: 0 });
-  const [mixSheetColor, setMixSheetColor] = useState<{ id: number; hexValue: string } | null>(null);
+  const [mixSheetColor, setMixSheetColor] = useState<{ id: number; hexValue: string } | null>(
+    null
+  );
+  const [heroHeight, setHeroHeight] = useState(HERO_WIDTH * 1.25);
 
   const projectIdNum = Number(id);
   const { projects: projectList, isLoading, error } = useProjects();
@@ -40,30 +50,28 @@ export default function WorkspaceScreen() {
   const imageUri = project?.imageUri;
   const isMissingImage = !imageUri || imageUri === "missing";
 
-  const containRect = getContainRect(
-    layout.width,
-    layout.height,
-    imageSize.width,
-    imageSize.height
-  );
-  // Image is top-aligned; content rect for touch mapping has y = 0
-  const imageContentRect = {
-    x: containRect.x,
-    y: 0,
-    width: containRect.width,
-    height: containRect.height,
-  };
-
   useEffect(() => {
     if (!imageUri || isMissingImage) return;
     Image.getSize(
       imageUri,
-      (w, h) => setImageSize({ width: w, height: h }),
+      (w, h) => {
+        setImageSize({ width: w, height: h });
+        const aspect = h / w;
+        setHeroHeight(Math.min(HERO_WIDTH * aspect, HERO_WIDTH * 1.4));
+      },
       () => setImageSize({ width: 1, height: 1 })
     );
   }, [imageUri, isMissingImage]);
 
+  const imageContentRect = {
+    x: 0,
+    y: 0,
+    width: HERO_WIDTH,
+    height: heroHeight,
+  };
+
   const handleLongPress = (e: { nativeEvent: { locationX: number; locationY: number } }) => {
+    if (isMissingImage) return;
     const point = viewToImagePixel(
       e.nativeEvent.locationX,
       e.nativeEvent.locationY,
@@ -89,93 +97,240 @@ export default function WorkspaceScreen() {
     }
   };
 
+  const confirmDeleteProject = () => {
+    if (!project) return;
+    Alert.alert(
+      "Delete project",
+      `Remove "${project.name}" and its palette? This can't be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await db.delete(projects).where(eq(projects.id, project.id));
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              router.back();
+            } catch (e) {
+              Alert.alert(
+                "Couldn't delete",
+                e instanceof Error ? e.message : "Something went wrong."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-background p-6">
-        <Text className="text-destructive text-center">Failed to load project: {error.message}</Text>
+      <View
+        className="flex-1 items-center justify-center p-6"
+        style={{ backgroundColor: theme.colors.background }}
+      >
+        <Text style={{ color: theme.colors.error, fontFamily: fontFamilies.body, textAlign: "center" }}>
+          Failed to load project: {error.message}
+        </Text>
       </View>
     );
   }
 
   if (isLoading || project === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.colors.background }}
+      >
         {isLoading ? (
-          <ActivityIndicator size="large" color="#b45309" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         ) : (
-          <Text className="text-text-tertiary">Project not found</Text>
+          <Text style={{ color: theme.colors.onSurfaceVariant, fontFamily: fontFamilies.body }}>
+            Project not found
+          </Text>
         )}
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-lg active:opacity-70">
-          <ChevronLeft size={24} color="#1c1917" />
-        </TouchableOpacity>
-        <Text className="text-text-primary font-semibold text-base flex-1 text-center" numberOfLines={1}>
+    <View className="flex-1" style={{ backgroundColor: theme.colors.background }}>
+      <View
+        style={{
+          paddingTop: insets.top + theme.spacing.md,
+          paddingHorizontal: theme.spacing["2xl"],
+          paddingBottom: theme.spacing.lg,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            gap: theme.spacing.sm,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <ChevronLeft size={22} color={theme.colors.primary} />
+          <Text
+            style={{
+              fontFamily: fontFamilies.label,
+              fontSize: 10,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              color: theme.colors.primary,
+            }}
+          >
+            Back
+          </Text>
+        </Pressable>
+        <Text
+          numberOfLines={1}
+          style={{
+            flex: 1,
+            textAlign: "center",
+            fontFamily: fontFamilies.displayItalic,
+            fontSize: 24,
+            color: theme.colors.onBackground,
+            marginHorizontal: theme.spacing.sm,
+          }}
+        >
           {project.name}
         </Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 64 }} />
       </View>
 
-      <View className="px-4 py-3 border-b border-border">
-        <Text className="text-text-secondary text-xs font-medium mb-2">Palette</Text>
-        <View style={{ height: 52 }}>
-          {paletteColors.length > 0 ? (
-            <>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 10 }}
-                style={{ height: 36 }}
-              >
-                {paletteColors.map((c) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setMixSheetColor({ id: c.id, hexValue: c.hexValue });
-                    }}
-                    className="w-9 h-9 rounded-full border-2 border-border-strong active:opacity-90"
-                    style={{ backgroundColor: c.hexValue }}
-                  />
-                ))}
-              </ScrollView>
-              <Text className="text-text-tertiary text-xs mt-1.5">
-                Tap a color to see how to mix it
-              </Text>
-            </>
-          ) : (
-            <Text className="text-text-tertiary text-sm">Tap and hold on the image to add colors</Text>
-          )}
-        </View>
-      </View>
-
-      <View className="flex-1" onLayout={(e) => setLayout(e.nativeEvent.layout)}>
-        {isMissingImage ? (
-          <View className="flex-1 items-center justify-center bg-muted">
-            <Text className="text-muted-foreground">Missing image</Text>
-          </View>
-        ) : (
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + theme.spacing["5xl"],
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ paddingHorizontal: theme.spacing.lg }}>
           <Pressable
-            style={{ flex: 1, justifyContent: "flex-start", alignItems: "center" }}
             onLongPress={handleLongPress}
             delayLongPress={400}
+            disabled={isMissingImage}
+            style={({ pressed }) => ({
+              width: HERO_WIDTH,
+              height: heroHeight,
+              borderRadius: theme.radius["2xl"],
+              overflow: "hidden",
+              opacity: pressed ? 0.95 : 1,
+            })}
           >
-            <Image
-              source={{ uri: imageUri }}
-              style={{
-                width: containRect.width,
-                height: containRect.height,
-              }}
-              resizeMode="contain"
-            />
+            {isMissingImage ? (
+              <View
+                className="flex-1 items-center justify-center"
+                style={{ backgroundColor: theme.colors.surfaceContainerLow }}
+              >
+                <Text style={{ color: theme.colors.onSurfaceVariant, fontFamily: fontFamilies.body }}>
+                  Missing image
+                </Text>
+              </View>
+            ) : (
+              <Image
+                source={{ uri: imageUri }}
+                style={{ width: HERO_WIDTH, height: heroHeight }}
+                resizeMode="cover"
+              />
+            )}
           </Pressable>
-        )}
-      </View>
+        </View>
+
+        <View
+          style={{
+            marginHorizontal: theme.spacing["2xl"],
+            marginTop: theme.spacing["2xl"],
+            backgroundColor: theme.colors.surfaceContainerLow,
+            borderRadius: theme.radius["3xl"],
+            padding: theme.spacing["2xl"],
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: fontFamilies.label,
+              fontSize: 10,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              color: theme.colors.primary,
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            Sample Color
+          </Text>
+          <Text
+            style={{
+              fontFamily: fontFamilies.displayItalic,
+              fontSize: 28,
+              color: theme.colors.onSurface,
+              marginBottom: theme.spacing.md,
+            }}
+          >
+            Press and hold the canvas
+          </Text>
+          <Text
+            style={{
+              fontFamily: fontFamilies.body,
+              fontSize: 15,
+              lineHeight: 22,
+              color: theme.colors.onSurfaceVariant,
+            }}
+          >
+            Long-press anywhere on the reference image above to open the sampler and extract a
+            pigment for your palette.
+          </Text>
+        </View>
+
+        <View style={{ paddingHorizontal: theme.spacing["2xl"], marginTop: theme.spacing["3xl"] }}>
+          <View
+            style={{
+              backgroundColor: theme.colors.surfaceContainerLow,
+              borderRadius: theme.radius["3xl"],
+              padding: theme.spacing["2xl"],
+            }}
+          >
+            <View style={{ marginBottom: theme.spacing["2xl"] }}>
+              <Text
+                style={{
+                  fontFamily: fontFamilies.displayItalic,
+                  fontSize: 32,
+                  color: theme.colors.onSurface,
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
+                Palette
+              </Text>
+              <Text
+                style={{
+                  fontFamily: fontFamilies.label,
+                  fontSize: 10,
+                  letterSpacing: 1.6,
+                  textTransform: "uppercase",
+                  color: theme.colors.primary,
+                }}
+              >
+                Tap a color to see the mix ratio
+              </Text>
+            </View>
+            <PaletteGrid
+              colors={paletteColors}
+              onColorPress={(color) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setMixSheetColor({ id: color.id, hexValue: color.hexValue });
+              }}
+            />
+          </View>
+
+          <View style={{ marginTop: theme.spacing["4xl"], alignItems: "center" }}>
+            <DestructiveTextButton label="Delete Project" onPress={confirmDeleteProject} />
+          </View>
+        </View>
+      </ScrollView>
 
       {imageUri && !isMissingImage && (
         <ColorPickerOverlay

@@ -3,7 +3,8 @@ import { View, Text, StyleSheet } from "react-native";
 import { Canvas, Path, Skia } from "@shopify/react-native-skia";
 import type { RybMix } from "../lib/colorMixing";
 import { getRybSegments } from "../lib/colorMixing";
-import { theme } from "../theme";
+import { useTheme } from "../hooks/ThemeContext";
+import { fontFamilies } from "../theme";
 
 const SIZE = 140;
 const STROKE_WIDTH = 24;
@@ -25,10 +26,6 @@ interface DonutSegment {
   sweepAngle: number;
 }
 
-/**
- * Builds a single donut segment path (from startAngle for sweepAngle degrees).
- * Skia: 0° = positive x-axis, positive sweep = clockwise.
- */
 function buildSegmentPath(
   startAngleDeg: number,
   sweepAngleDeg: number
@@ -55,11 +52,6 @@ function buildSegmentPath(
   return path;
 }
 
-/**
- * If there are more than 2 segments, drop any segments smaller than 9% and
- * redistribute their percentage proportionally across the remaining segments.
- * This keeps the chart readable while preserving relative proportions.
- */
 function adjustSegments(segments: DonutSegment[]): DonutSegment[] {
   if (segments.length <= 2) return segments;
 
@@ -67,7 +59,6 @@ function adjustSegments(segments: DonutSegment[]): DonutSegment[] {
   if (total <= 0) return segments;
 
   const major = segments.filter((seg) => seg.percent >= 7);
-  // If everything is small, or nothing qualifies, keep the original breakdown.
   if (major.length === 0 || major.length === segments.length) {
     return segments;
   }
@@ -95,13 +86,20 @@ export interface MixDonutChartProps {
 }
 
 export function MixDonutChart({ mix }: MixDonutChartProps) {
+  const { theme } = useTheme();
   const rawSegments = useMemo(() => getRybSegments(mix), [mix]);
   const segments = useMemo(() => adjustSegments(rawSegments), [rawSegments]);
 
   if (segments.length === 0) {
     return (
       <View style={[styles.container, styles.placeholder]}>
-        <Text style={{ color: theme.colors.textTertiary, fontSize: 14 }}>
+        <Text
+          style={{
+            color: theme.colors.onSurfaceVariant,
+            fontFamily: fontFamilies.body,
+            fontSize: 14,
+          }}
+        >
           No mix data
         </Text>
       </View>
@@ -119,12 +117,7 @@ export function MixDonutChart({ mix }: MixDonutChartProps) {
           />
         ))}
       </Canvas>
-      <View
-        style={[
-          styles.legend,
-          { marginTop: theme.spacing.md, gap: theme.spacing.md },
-        ]}
-      >
+      <View style={[styles.legend, { marginTop: theme.spacing.md, gap: theme.spacing.md }]}>
         {segments.map((seg) => (
           <View key={seg.key} style={styles.legendRow}>
             <View
@@ -132,13 +125,14 @@ export function MixDonutChart({ mix }: MixDonutChartProps) {
                 styles.swatch,
                 {
                   backgroundColor: seg.hex,
-                  borderColor: theme.colors.border,
+                  borderColor: `${theme.colors.outlineVariant}66`,
                 },
               ]}
             />
             <Text
               style={{
-                color: theme.colors.textSecondary,
+                color: theme.colors.onSurfaceVariant,
+                fontFamily: fontFamilies.body,
                 fontSize: 14,
                 marginLeft: 6,
               }}

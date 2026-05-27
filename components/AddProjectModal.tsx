@@ -6,17 +6,18 @@ import {
   TouchableOpacity,
   TextInput,
   Keyboard,
-  TouchableWithoutFeedback,
   Pressable,
   Alert,
   useWindowDimensions,
+  StyleSheet,
 } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as Haptics from "expo-haptics";
-import { ImageOff } from "lucide-react-native";
-import { theme } from "../theme";
+import { ImageOff, X } from "lucide-react-native";
+import { useTheme } from "../hooks/ThemeContext";
+import { fontFamilies } from "../theme";
 
 export interface AddProjectModalProps {
   visible: boolean;
@@ -24,19 +25,18 @@ export interface AddProjectModalProps {
   onCreate: (name: string, imageUri: string) => Promise<void>;
 }
 
-export function AddProjectModal({
-  visible,
-  onClose,
-  onCreate,
-}: AddProjectModalProps) {
+export function AddProjectModal({ visible, onClose, onCreate }: AddProjectModalProps) {
   const { height: windowHeight } = useWindowDimensions();
+  const { theme } = useTheme();
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setSelectedUri(null);
       setProjectName("");
+      setIsCreating(false);
     }
   }, [visible]);
 
@@ -57,145 +57,211 @@ export function AddProjectModal({
   }, []);
 
   const createProject = useCallback(async () => {
-    if (!selectedUri) return;
-    let imageUri = selectedUri;
-    try {
-      const context = ImageManipulator.manipulate(selectedUri);
-      const imageRef = await context.renderAsync();
-      const saveResult = await imageRef.saveAsync({
-        format: SaveFormat.JPEG,
-        compress: 0.9,
-      });
-      imageUri = saveResult.uri;
-    } catch {
-      // Keep original URI if conversion fails
+    if (!selectedUri || isCreating) {
+      if (!selectedUri) {
+        Alert.alert("Image required", "Select a reference image before creating your project.");
+      }
+      return;
     }
-    const name = (projectName.trim() || "Untitled").slice(0, 50);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await onCreate(name, imageUri);
-    onClose();
-  }, [selectedUri, projectName, onCreate, onClose]);
-
-  const dismissKeyboard = useCallback(() => {
-    Keyboard.dismiss();
-  }, []);
+    setIsCreating(true);
+    try {
+      let imageUri = selectedUri;
+      try {
+        const context = ImageManipulator.manipulate(selectedUri);
+        const imageRef = await context.renderAsync();
+        const saveResult = await imageRef.saveAsync({
+          format: SaveFormat.JPEG,
+          compress: 0.9,
+        });
+        imageUri = saveResult.uri;
+      } catch {
+        // Keep original URI if conversion fails
+      }
+      const name = (projectName.trim() || "Untitled").slice(0, 50);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await onCreate(name, imageUri);
+      onClose();
+    } catch (e) {
+      Alert.alert(
+        "Couldn't create project",
+        e instanceof Error ? e.message : "Something went wrong. Try again."
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  }, [selectedUri, projectName, onCreate, onClose, isCreating]);
 
   if (!visible) return null;
 
+  const canCreate = Boolean(selectedUri) && !isCreating;
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <Pressable
-        onPress={dismissKeyboard}
-        style={{
-          flex: 1,
-          justifyContent: "flex-start",
-          alignItems: "center",
-          paddingHorizontal: theme.spacing.xl,
-          paddingBottom: theme.spacing.xl,
-          paddingTop: windowHeight * 0.18,
-          backgroundColor: theme.colors.backdrop,
-        }}
-      >
-        <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <View
-            className="rounded-xl p-5 w-full max-w-[340px]"
-            style={{ backgroundColor: theme.colors.surfaceElevated }}
-          >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <Pressable
+          style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.colors.backdrop }]}
+          onPress={onClose}
+          accessibilityLabel="Dismiss"
+        />
+
+        <View
+          style={[
+            styles.card,
+            {
+              maxWidth: 360,
+              marginTop: windowHeight * 0.14,
+              marginHorizontal: theme.spacing["2xl"],
+              backgroundColor: theme.colors.surfaceContainerLowest,
+              borderRadius: theme.radius["2xl"],
+              padding: theme.spacing["2xl"],
+              shadowColor: theme.colors.onSurface,
+              shadowOffset: { width: 0, height: 40 },
+              shadowOpacity: 0.08,
+              shadowRadius: 60,
+              elevation: 8,
+            },
+          ]}
+        >
+          <View className="flex-row items-center justify-between" style={{ marginBottom: theme.spacing.lg }}>
             <Text
-              className="text-lg font-semibold mb-4"
-              style={{ color: theme.colors.text }}
+              style={{
+                fontFamily: fontFamilies.displayItalic,
+                fontSize: 28,
+                color: theme.colors.onSurface,
+              }}
             >
               New project
             </Text>
+            <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Close">
+              <X size={22} color={theme.colors.onSurfaceVariant} />
+            </Pressable>
+          </View>
 
-            <TouchableOpacity
-              onPress={selectImage}
-              className="w-full rounded-lg overflow-hidden mb-4 active:opacity-90"
-              style={{
-                height: 160,
-                backgroundColor: theme.colors.muted,
-              }}
-              activeOpacity={0.8}
-            >
-              {selectedUri ? (
-                <Image
-                  key={selectedUri}
-                  source={{ uri: selectedUri }}
-                  style={{ width: "100%", height: 160 }}
-                  contentFit="cover"
-                />
-              ) : (
-                <View className="flex-1 items-center justify-center">
-                  <ImageOff size={40} color={theme.colors.textTertiary} />
-                  <Text
-                    className="mt-2 text-base"
-                    style={{ color: theme.colors.textTertiary }}
-                  >
-                    Select image
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            <TextInput
-              className="rounded-lg px-3.5 py-3 text-base border mb-5"
-              style={{
-                ...theme.typography.body,
-                lineHeight: 22,
-                borderColor: theme.colors.border,
-                color: theme.colors.text,
-                backgroundColor: theme.colors.surfaceElevated,
-              }}
-              placeholder="Project name"
-              placeholderTextColor={theme.colors.textTertiary}
-              value={projectName}
-              onChangeText={setProjectName}
-              maxLength={50}
-              autoCapitalize="words"
-            />
-
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={onClose}
-                className="flex-1 py-3 rounded-lg items-center active:opacity-90"
-                style={{ backgroundColor: theme.colors.muted }}
-                activeOpacity={0.8}
-              >
+          <Text
+            style={{
+              fontFamily: fontFamilies.label,
+              fontSize: 10,
+              letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: theme.colors.onSurfaceVariant,
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            Reference image
+          </Text>
+          <TouchableOpacity
+            onPress={selectImage}
+            activeOpacity={0.85}
+            style={{
+              width: "100%",
+              height: 180,
+              borderRadius: theme.radius.lg,
+              overflow: "hidden",
+              backgroundColor: theme.colors.surfaceContainerLow,
+              marginBottom: theme.spacing.lg,
+            }}
+          >
+            {selectedUri ? (
+              <Image
+                key={selectedUri}
+                source={{ uri: selectedUri }}
+                style={{ width: "100%", height: 180 }}
+                contentFit="cover"
+              />
+            ) : (
+              <View className="flex-1 items-center justify-center">
+                <ImageOff size={40} color={theme.colors.onSurfaceVariant} />
                 <Text
-                  className="text-base font-medium"
-                  style={{ color: theme.colors.textSecondary }}
-                >
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={createProject}
-                disabled={!selectedUri}
-                className="flex-1 py-3 rounded-lg items-center active:opacity-90"
-                style={{
-                  backgroundColor: !selectedUri ? theme.colors.border : theme.colors.primary,
-                  opacity: !selectedUri ? 0.8 : 1,
-                }}
-                activeOpacity={0.8}
-              >
-                <Text
-                  className="text-base font-semibold"
                   style={{
-                    color: !selectedUri ? theme.colors.textTertiary : theme.colors.primaryForeground,
+                    fontFamily: fontFamilies.body,
+                    fontSize: 14,
+                    color: theme.colors.onSurfaceVariant,
+                    marginTop: theme.spacing.sm,
                   }}
                 >
-                  Create
+                  Select image
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Pressable>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <Text
+            style={{
+              fontFamily: fontFamilies.label,
+              fontSize: 10,
+              letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: theme.colors.onSurfaceVariant,
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            Project name
+          </Text>
+          <TextInput
+            style={{
+              borderRadius: theme.radius.md,
+              paddingHorizontal: theme.spacing.lg,
+              paddingVertical: theme.spacing.md,
+              fontFamily: fontFamilies.body,
+              fontSize: 16,
+              color: theme.colors.onSurface,
+              backgroundColor: theme.colors.surfaceContainerLow,
+              marginBottom: theme.spacing["2xl"],
+            }}
+            placeholder="Untitled"
+            placeholderTextColor={theme.colors.onSurfaceVariant}
+            value={projectName}
+            onChangeText={setProjectName}
+            maxLength={50}
+            autoCapitalize="words"
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
+          />
+
+          <TouchableOpacity
+            onPress={createProject}
+            disabled={!canCreate}
+            activeOpacity={0.85}
+            accessibilityLabel="Create project"
+            accessibilityRole="button"
+            style={{
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: theme.spacing.lg,
+              borderRadius: theme.radius.full,
+              backgroundColor: canCreate
+                ? theme.colors.primary
+                : theme.colors.surfaceContainerHighest,
+              marginBottom: theme.spacing.md,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: fontFamilies.label,
+                fontSize: 12,
+                letterSpacing: 1.6,
+                textTransform: "uppercase",
+                fontWeight: "700",
+                color: canCreate ? theme.colors.onPrimary : theme.colors.onSurfaceVariant,
+              }}
+            >
+              {isCreating ? "Creating…" : "Create Project"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    alignItems: "center",
+  },
+  card: {
+    width: "100%",
+    zIndex: 2,
+  },
+});
