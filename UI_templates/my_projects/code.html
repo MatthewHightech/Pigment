@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,600;1,400;1,600&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-low": "#f5f3ee",
+                        "surface-variant": "#e4e2dd",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#2e1500",
+                        "primary-fixed-dim": "#ffb596",
+                        "outline-variant": "#dac1b8",
+                        "surface-tint": "#944925",
+                        "surface-container-highest": "#e4e2dd",
+                        "secondary-fixed-dim": "#ffb77c",
+                        "on-surface-variant": "#54433c",
+                        "outline": "#87736b",
+                        "background": "#fbf9f4",
+                        "on-background": "#1b1c19",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed-variant": "#76320f",
+                        "surface": "#fbf9f4",
+                        "surface-dim": "#dbdad5",
+                        "inverse-primary": "#ffb596",
+                        "tertiary-container": "#686767",
+                        "secondary": "#904d00",
+                        "surface-bright": "#fbf9f4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#6d3900",
+                        "tertiary": "#504f4f",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#30312e",
+                        "primary-fixed": "#ffdbcd",
+                        "surface-container-high": "#eae8e3",
+                        "secondary-fixed": "#ffdcc2",
+                        "on-secondary-container": "#6e3a00",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#c8c6c6",
+                        "secondary-container": "#ffa049",
+                        "on-primary-container": "#ffe1d6",
+                        "primary": "#823b18",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#e4e2e1",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#e9e6e6",
+                        "on-tertiary-fixed-variant": "#474747",
+                        "surface-container": "#f0eee9",
+                        "on-primary-fixed": "#360f00",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#a0522d",
+                        "inverse-on-surface": "#f2f1ec",
+                        "on-surface": "#1b1c19"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #FBF9F4;
+            color: #1B1C19;
+            font-family: 'Manrope', sans-serif;
+        }
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 3rem;
+        }
+        @media (min-width: 1024px) {
+            .editorial-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#FBF9F4] dark:bg-[#1B1C19] sticky top-0 z-40 transition-opacity">
+<div class="flex justify-between items-center w-full px-8 py-6 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-[#823B18] dark:text-[#A0522D] hover:opacity-80 transition-opacity active:scale-95 duration-200 ease-out">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+<h1 class="font-serif italic text-2xl text-[#1B1C19] dark:text-[#FBF9F4]">Pigment</h1>
+<div class="flex items-center gap-4">
+<button class="text-[#823B18] dark:text-[#A0522D] hover:opacity-80 transition-opacity active:scale-95 duration-200 ease-out">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-8 pt-12">
+<!-- Hero Section / Editorial Header -->
+<section class="mb-20">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div class="max-w-2xl">
+<p class="font-label uppercase tracking-widest text-xs text-primary mb-4">Collection</p>
+<h2 class="font-headline text-6xl md:text-8xl italic leading-none text-on-surface">My Projects</h2>
+</div>
+<div class="text-right">
+<p class="font-label uppercase tracking-widest text-xs text-on-surface-variant">Total Curations / 12</p>
+</div>
+</div>
+</section>
+<!-- Projects Bento/Editorial Grid -->
+<div class="editorial-grid">
+<!-- Project Card 1: Large Bleed -->
+<div class="group flex flex-col gap-6">
+<div class="relative overflow-hidden aspect-[4/5] rounded-lg bg-surface-container-low transition-all duration-500 hover:shadow-2xl">
+<img alt="Floral painting" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close-up of an abstract impressionist painting featuring vibrant floral patterns with thick brushstrokes in earthy siennas and ochres" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiy6Z2AVd2_G8a_p9iD7_wVZhbvd6fxkjOSGfgv2sqhCXdy_u4IQ-f4nZejdnzu9lx1G8hshkUOlP-Oy2GJALiTg_efI-mZphdnW9vOEoXu3ruO8wyH_0pQlKwm23QE4WKkT7oIYe7sM11zjoJgZsPZaaqtX2nsZmg2LG28Ea_1WjdVyn4TWklzEInLsbXGr-waE3PXi83AUZ1HW_GOa6_C9wx_SN2kG2lq_Vj9eVrrrN7ijT0w6NV1cGebbKNnxgRYs9guvBcZWT6"/>
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-3xl italic text-on-surface">Waterfall</h3>
+<span class="font-label text-[10px] uppercase tracking-widest bg-surface-container-highest px-2 py-1 rounded">Oil on Canvas</span>
+</div>
+<div class="flex gap-2 items-center">
+<div class="w-4 h-4 rounded-full bg-[#823B18] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#904D00] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#A0522D] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#F5F3EE] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+</div>
+</div>
+</div>
+<!-- Project Card 2: Offset Layout -->
+<div class="group flex flex-col gap-6 lg:mt-24">
+<div class="relative overflow-hidden aspect-[1/1] rounded-lg bg-surface-container-low transition-all duration-500 hover:shadow-2xl">
+<img alt="Landscape painting" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Soft ethereal landscape painting showing rolling hills under a hazy golden sunlight with muted green and raw ochre tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSWvYdSMBM2Gip7oYMrqaHRjSdHHQT4Sxujx1MqWzROl0FSDfxamPlbZTns4PJlyUBX0FQdxUcvUhlu1Fmb7sKESVgb5NwZQZsfmd3zstxStwDaWdYbhHncRr3szEyKZWlXHpbvOU4uJ1iEOyb5zc8onT9-GVyseRRCnW8rMV10XkbybpVNHIc4jd7mzCESC5TaXAWcJJ6WecupQ72gPY0h6sWynkqYtSRM0WXcRLBYbmFsJ-hx6YADrdUVVUDjzI9l8ZOrrWsdO6a"/>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-3xl italic text-on-surface">Sunlight over Hills</h3>
+<span class="font-label text-[10px] uppercase tracking-widest bg-surface-container-highest px-2 py-1 rounded">Watercolor</span>
+</div>
+<div class="flex gap-2 items-center">
+<div class="w-4 h-4 rounded-full bg-[#904D00] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#D4A373] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#CCD5AE] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="group flex flex-col gap-6 lg:-mt-12">
+<div class="relative overflow-hidden aspect-[3/4] rounded-lg bg-surface-container-low transition-all duration-500 hover:shadow-2xl">
+<img alt="Portrait painting" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Moody artistic portrait with dramatic charcoal shadows and raw sienna highlights on a textured canvas background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFwQSYYWc0qKfIzj84WRKR3TUKt-xY-Hybg6aB14zZXfpsr19wTvgRWzCFloiubP9Zc5Xw2_WDdd9f_7heNozdXnIP1Ftg1fNinX_tFQeHlA6pWdy36rOAAjrkwb0yKjo20UOP-kTXfksTWtY0HYa5NsQoBJJ_HDy32KgrvuQ72LnwP4h5CjV-diTthgcxZR0QxPIEW2IUaJGn_SnoIziMLTM7pyXowJ_Uwk1qBYZXKMN4waoZNuWZz4drojFxrutYbiYWCORlhGD_"/>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-3xl italic text-on-surface">The Curator</h3>
+<span class="font-label text-[10px] uppercase tracking-widest bg-surface-container-highest px-2 py-1 rounded">Mixed Media</span>
+</div>
+<div class="flex gap-2 items-center">
+<div class="w-4 h-4 rounded-full bg-[#1B1C19] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#823B18] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#E4E2DD] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="group flex flex-col gap-6">
+<div class="relative overflow-hidden aspect-[16/9] rounded-lg bg-surface-container-low transition-all duration-500 hover:shadow-2xl">
+<img alt="Abstract textures" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Horizontal abstract composition with heavy impasto textures in white, beige, and burnt orange, mimicking cracked earth" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9ladmBN2kwFe0MyNWxOoqLGtgUYf8Cs3PH7Sq5L8a-bru8DcEeRPbPZHbwoNV-z7sv5IKE75DwvcELuhRl7PR1d1Uly17tGAPmVxynx7cY9jLhr1k-l4vn6632z9tHTL6vlFWTvmQp9Zn9DGUXlFLGtar_cnXk6nAJfUeUFgRGv8wYgjuIOwJixJDKLnQg4CiCklTRx-lQtAoX_-ZGFo4pQFhC7eut-hrhugeTcWI0FmFAC4JgGN-KP5jumJf9YGknFrQLRn6m7Zf"/>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-3xl italic text-on-surface">Desert Echo</h3>
+<span class="font-label text-[10px] uppercase tracking-widest bg-surface-container-highest px-2 py-1 rounded">Acrylic</span>
+</div>
+<div class="flex gap-2 items-center">
+<div class="w-4 h-4 rounded-full bg-[#FBF9F4] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#E9C46A] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+<div class="w-4 h-4 rounded-full bg-[#E76F51] outline outline-1 outline-offset-1 outline-outline-variant/30"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 bg-[#FBF9F4]/80 dark:bg-[#1B1C19]/80 backdrop-blur-xl shadow-[0_-4px_40px_rgba(27,28,25,0.04)] rounded-t-[2rem]">
+<a class="flex items-center justify-center bg-[#823B18] dark:bg-[#A0522D] text-white rounded-full w-12 h-12 scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</a>
+<a class="flex items-center justify-center text-[#1B1C19] dark:text-[#FBF9F4] w-12 h-12 hover:bg-[#E4E2DD] dark:hover:bg-[#3E3F3A] rounded-full transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="palette">palette</span>
+</a>
+<a class="flex items-center justify-center text-[#1B1C19] dark:text-[#FBF9F4] w-12 h-12 hover:bg-[#E4E2DD] dark:hover:bg-[#3E3F3A] rounded-full transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</a>
+</nav>
+<!-- FAB (Suppressed based on rules for 'My Projects' detail focus, but kept here if top-level dashboard) -->
+<button class="fixed bottom-28 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:opacity-90 transition-opacity z-40 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="brush">brush</span>
+</button>
+</body></html>
