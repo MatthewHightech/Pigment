@@ -15,13 +15,15 @@ import {
   Manrope_700Bold,
 } from "@expo-google-fonts/manrope";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ProjectsProvider } from "../hooks/ProjectsContext";
 import { ThemeProvider, useTheme } from "../hooks/ThemeContext";
 
 import "../global.css";
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Unavailable during fast refresh, web, or if splash was already dismissed
+});
 
 function RootStack() {
   const { theme, isDark } = useTheme();
@@ -41,7 +43,8 @@ function RootStack() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const splashHiddenRef = useRef(false);
+  const [fontsLoaded, fontError] = useFonts({
     Newsreader_400Regular,
     Newsreader_400Regular_Italic,
     Newsreader_600SemiBold,
@@ -50,18 +53,34 @@ export default function RootLayout() {
     Manrope_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
+  const hideSplash = useCallback(async () => {
+    if (splashHiddenRef.current) return;
+    try {
+      await SplashScreen.hideAsync();
+      splashHiddenRef.current = true;
+    } catch {
+      // Native splash may not be registered (fast refresh, dev client reload)
     }
-  }, [fontsLoaded]);
+  }, []);
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      void hideSplash();
+    }
+  }, [fontsLoaded, fontError, hideSplash]);
+
+  const onLayoutRootView = useCallback(() => {
+    if (fontsLoaded || fontError) {
+      void hideSplash();
+    }
+  }, [fontsLoaded, fontError, hideSplash]);
+
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <SafeAreaProvider>
         <ThemeProvider>
           <ProjectsProvider>

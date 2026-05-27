@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 import {
   createContext,
@@ -9,9 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { getStoredColorScheme, setStoredColorScheme } from "../lib/themeStorage";
 import { getTheme, type AppTheme, type ColorScheme } from "../theme";
-
-const STORAGE_KEY = "@pigment/color-scheme";
 
 type ThemeContextValue = {
   theme: AppTheme;
@@ -29,13 +27,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((stored) => {
-        if (stored === "light" || stored === "dark") {
-          setNwScheme(stored);
-        }
-      })
-      .finally(() => setIsReady(true));
+    const stored = getStoredColorScheme();
+    if (stored) {
+      setNwScheme(stored);
+    }
+    setIsReady(true);
   }, [setNwScheme]);
 
   const colorScheme: ColorScheme = nwScheme === "dark" ? "dark" : "light";
@@ -43,7 +39,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setColorScheme = useCallback(
     (scheme: ColorScheme) => {
       setNwScheme(scheme);
-      AsyncStorage.setItem(STORAGE_KEY, scheme);
+      setStoredColorScheme(scheme);
     },
     [setNwScheme]
   );

@@ -2,7 +2,7 @@ import { openDatabaseSync } from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import * as schema from "./schema";
 
-const expoDb = openDatabaseSync("pigment.db", { enableChangeListener: true });
+export const expoDb = openDatabaseSync("pigment.db", { enableChangeListener: true });
 export const db = drizzle(expoDb, { schema });
 
 // Run schema creation on first load (no migrations for simplicity)
@@ -22,6 +22,10 @@ CREATE TABLE IF NOT EXISTS colors (
   b_percentage REAL NOT NULL,
   w_percentage REAL NOT NULL,
   blk_percentage REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY NOT NULL,
+  value TEXT NOT NULL
 );
 `;
 expoDb.execSync(initSql);
